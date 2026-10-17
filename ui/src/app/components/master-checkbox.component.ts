@@ -1,20 +1,19 @@
-import { Component, ElementRef, viewChild, output, input, ChangeDetectionStrategy } from "@angular/core";
+import { Component, output, input, ChangeDetectionStrategy } from "@angular/core";
 import { Checkable } from "../interfaces";
 import { FormsModule } from "@angular/forms";
+import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 
 @Component({
     selector: 'app-select-all-checkbox',
     template: `
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" id="{{id()}}-select-all" #masterCheckbox [(ngModel)]="selected" (change)="clicked()" [attr.aria-label]="'Select all ' + id() + ' items'">
-    <label class="form-check-label visually-hidden" for="{{id()}}-select-all">Select all</label>
-  </div>
+  <hlm-checkbox [inputId]="id() + '-select-all'" [(ngModel)]="selected" [indeterminate]="indeterminate" (ngModelChange)="clicked()" [aria-label]="'Select all ' + id() + ' items'" />
 `,
     // Shared Checkable objects are mutated in place; Eager preserves pre-v22 behavior.
     // eslint-disable-next-line @angular-eslint/prefer-on-push-component-change-detection
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
-  FormsModule
+  FormsModule,
+  HlmCheckboxImports,
 ]
 })
 export class SelectAllCheckboxComponent {
@@ -27,8 +26,8 @@ export class SelectAllCheckboxComponent {
   readonly orderedIds = input<string[] | null>(null);
   readonly changed = output<number>();
 
-  readonly masterCheckbox = viewChild.required<ElementRef>('masterCheckbox');
-  selected!: boolean;
+  selected = false;
+  indeterminate = false;
 
   // The item a range extends from: the last one toggled on its own.
   private anchorId: string | null = null;
@@ -47,13 +46,10 @@ export class SelectAllCheckboxComponent {
       }
       this.anchorId = id;
     }
-    const masterCheckbox = this.masterCheckbox();
-    if (!masterCheckbox)
-      return;
     let checked = 0;
     this.list().forEach(item => { if(item.checked) checked++ });
     this.selected = checked > 0 && checked === this.list().size;
-    masterCheckbox.nativeElement.indeterminate = checked > 0 && checked < this.list().size;
+    this.indeterminate = checked > 0 && checked < this.list().size;
     this.changed.emit(checked);
   }
 

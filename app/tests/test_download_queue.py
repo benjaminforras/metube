@@ -24,6 +24,8 @@ from ytdl import (
     DownloadQueue,
     _download_info_from_record,
     _download_info_to_record,
+    _ConcurrencyLimiter,
+    concurrency_ceiling,
 )
 
 
@@ -64,12 +66,44 @@ def test_cancel_add_increments_generation(dq_env):
     assert dq._add_generation == before + 1
 
 
-def test_download_queue_has_dedicated_executor_sized_from_config(dq_env):
+def test_download_queue_has_dedicated_executor_sized_for_the_highest_limit(dq_env):
     notifier = MagicMock()
     dq = DownloadQueue(dq_env, notifier)
     assert dq._download_executor is not None
-    assert dq._download_executor._max_workers == 2 * int(dq_env.MAX_CONCURRENT_DOWNLOADS) + 2
+    # Sized for any limit the Settings page can set, not just the starting one.
+    assert dq._download_executor._max_workers == 2 * concurrency_ceiling(dq_env) + 2
+    assert dq.semaphore.limit == int(dq_env.MAX_CONCURRENT_DOWNLOADS)
     dq.close()
+
+
+@pytest.mark.asyncio
+async def test_concurrency_limiter_follows_limit_changes():
+    limiter = _ConcurrencyLimiter(1)
+    running = []
+    release = asyncio.Event()
+
+    async def job(n):
+        async with limiter:
+            running.append(n)
+            await release.wait()
+
+    tasks = [asyncio.create_task(job(n)) for n in range(3)]
+    await asyncio.sleep(0)
+    assert running == [0]
+
+    # Raising the limit lets waiting jobs start without anything finishing.
+    await limiter.set_limit(2)
+    await asyncio.sleep(0)
+    assert len(running) == 2
+
+    # Lowering it stops nothing that is running; the third job keeps waiting.
+    await limiter.set_limit(1)
+    await asyncio.sleep(0)
+    assert len(running) == 2
+
+    release.set()
+    await asyncio.gather(*tasks)
+    assert sorted(running) == [0, 1, 2]
 
 
 def test_close_cancels_running_downloads_before_shutdown(dq_env):

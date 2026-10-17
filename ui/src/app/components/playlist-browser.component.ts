@@ -5,9 +5,16 @@ import {
   DestroyRef,
   OnInit,
   inject,
+  input,
+  output,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { BrowseEntry, BrowsePayload, DownloadsService } from '../services/downloads.service';
 import { Checkable } from '../interfaces';
 import { SelectAllCheckboxComponent } from './master-checkbox.component';
@@ -16,48 +23,53 @@ import { ItemCheckboxComponent } from './slave-checkbox.component';
 type BrowseRow = BrowseEntry & Checkable;
 
 /**
- * Modal that lists the entries of a playlist or channel (a flat probe, no
- * downloading) and closes with the URLs the user ticked. The opener sets
- * `payload` on the component instance before the first change detection.
+ * Lists the entries of a playlist or channel (a flat probe, no downloading)
+ * inside the opener's dialog, and emits the URLs the user ticked.
  */
 @Component({
   selector: 'app-playlist-browser',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SelectAllCheckboxComponent, ItemCheckboxComponent],
+  imports: [
+    HlmAlertImports,
+    HlmBadgeImports,
+    HlmButtonImports,
+    HlmDialogImports,
+    HlmSpinnerImports,
+    HlmTableImports,
+    SelectAllCheckboxComponent,
+    ItemCheckboxComponent,
+  ],
+  host: { class: 'contents' },
   template: `
-    <div class="modal-header">
-      <h5 class="modal-title text-break">
+    <hlm-dialog-header>
+      <h3 hlmDialogTitle class="break-words">
         @if (loaded) {
-          {{ playlistTitle || 'Browse' }}
-          <small class="text-body-secondary fs-6 ms-1">
+          {{ playlistTitle || 'Pick from a playlist' }}
+          <span class="text-muted-foreground ms-1 text-sm font-normal">
             ({{ rows.size }} {{ rows.size === 1 ? 'entry' : 'entries' }})
-          </small>
+          </span>
         } @else {
-          Browse
+          Pick from a playlist
         }
-      </h5>
-      <button
-        type="button"
-        class="btn-close"
-        aria-label="Close"
-        (click)="activeModal.dismiss()"
-      ></button>
-    </div>
-    <div class="modal-body">
+      </h3>
+      <p hlmDialogDescription>Ticked videos are queued with the options on the form.</p>
+    </hlm-dialog-header>
+    <div class="max-h-[60vh] min-h-24 overflow-y-auto">
       @if (loading) {
-        <div class="d-flex align-items-center gap-2">
-          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          <span>Loading entries…</span>
-        </div>
+        <p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
+          <hlm-spinner class="text-sm" /> Loading entries…
+        </p>
       } @else if (errorMsg) {
-        <div class="alert alert-danger mb-0" role="alert">{{ errorMsg }}</div>
+        <div hlmAlert variant="destructive" role="alert">
+          <div hlmAlertDescription>{{ errorMsg }}</div>
+        </div>
       } @else if (rows.size === 0) {
-        <p class="text-body-secondary mb-0">No entries found.</p>
+        <p class="text-muted-foreground text-sm">No entries found.</p>
       } @else {
-        <table class="table table-sm align-middle mb-0">
-          <thead>
-            <tr>
-              <th scope="col" style="width: 1rem;">
+        <table hlmTable class="tabular-nums">
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh class="w-4">
                 <app-select-all-checkbox
                   #browseMaster
                   [id]="'browse'"
@@ -65,59 +77,47 @@ type BrowseRow = BrowseEntry & Checkable;
                   (changed)="selectionChanged($event)"
                 />
               </th>
-              <th scope="col">Title</th>
-              <th scope="col" class="text-end" style="width: 6rem;">Duration</th>
+              <th hlmTh>Title</th>
+              <th hlmTh class="w-24 text-end">Duration</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody hlmTBody>
             @for (row of rowList; track row[0]) {
-              <tr>
-                <td>
+              <tr hlmTr>
+                <td hlmTd>
                   <app-item-checkbox [id]="row[0]" [master]="browseMaster" [checkable]="row[1]" />
                 </td>
-                <td class="text-break">
-                  <a
-                    [href]="row[1].url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-reset"
-                    >{{ row[1].title || row[1].url }}</a
-                  >
+                <td hlmTd class="whitespace-normal break-words">
+                  <a [href]="row[1].url" target="_blank" rel="noopener noreferrer" class="hover:underline">{{
+                    row[1].title || row[1].url
+                  }}</a>
                   @if (isDownloaded(row[1])) {
-                    <span class="badge bg-success ms-2">Downloaded</span>
+                    <span hlmBadge variant="secondary" class="ms-2">Downloaded</span>
                   }
                 </td>
-                <td class="text-end text-nowrap">{{ formatDuration(row[1].duration) }}</td>
+                <td hlmTd class="text-end whitespace-nowrap">{{ formatDuration(row[1].duration) }}</td>
               </tr>
             }
           </tbody>
         </table>
       }
     </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-outline-secondary" (click)="activeModal.dismiss()">
-        Cancel
+    <hlm-dialog-footer>
+      <button type="button" hlmBtn variant="outline" (click)="canceled.emit()">Cancel</button>
+      <button type="button" hlmBtn [disabled]="!loaded || selectedCount === 0" (click)="addSelected()">
+        Download selected ({{ selectedCount }})
       </button>
-      <button
-        type="button"
-        class="btn btn-primary"
-        [disabled]="!loaded || selectedCount === 0"
-        (click)="addSelected()"
-      >
-        Add selected ({{ selectedCount }})
-      </button>
-    </div>
+    </hlm-dialog-footer>
   `,
 })
 export class PlaylistBrowserComponent implements OnInit {
-  readonly activeModal = inject(NgbActiveModal);
   private downloads = inject(DownloadsService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
 
-  // Set by the opener through NgbModalRef.componentInstance (which cannot
-  // assign signal inputs).
-  payload!: BrowsePayload;
+  readonly payload = input.required<BrowsePayload>();
+  readonly picked = output<string[]>();
+  readonly canceled = output<void>();
 
   loading = true;
   loaded = false;
@@ -131,7 +131,7 @@ export class PlaylistBrowserComponent implements OnInit {
 
   ngOnInit(): void {
     this.downloads
-      .browse(this.payload)
+      .browse(this.payload())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         this.loading = false;
@@ -179,6 +179,6 @@ export class PlaylistBrowserComponent implements OnInit {
         urls.add(row.url);
       }
     });
-    this.activeModal.close(Array.from(urls));
+    this.picked.emit(Array.from(urls));
   }
 }

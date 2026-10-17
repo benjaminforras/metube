@@ -4,6 +4,7 @@
 import os
 import sys
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from pathlib import Path
 from aiohttp import web
@@ -21,9 +22,10 @@ from watchfiles import awatch
 
 import bg_tasks
 import format_catalog
-from ytdl import DownloadQueueNotifier, DownloadQueue, Download
+from ytdl import DownloadQueueNotifier, DownloadQueue, Download, concurrency_ceiling
 from download_options import DownloadOptions
-from subscriptions import SubscriptionManager, SubscriptionNotifier, SubscriptionInfo, browse_playlist, coerce_optional_bool
+from state_store import AtomicJsonStore
+from subscriptions import SubscriptionManager, SubscriptionNotifier, SubscriptionInfo, browse_playlist, coerce_optional_bool, validate_title_regex
 from yt_dlp.version import __version__ as yt_dlp_version
 
 log = logging.getLogger('main')
@@ -784,6 +786,9 @@ dqueue = DownloadQueue(config, Notifier())
 
 
 async def _download_queue_startup(app):
+    # The Settings page's limit, if one was saved, applies before the saved
+    # queue resumes.
+    await dqueue.set_max_concurrent_downloads(current_user_defaults()['max_concurrent_downloads'])
     await dqueue.initialize()
 
 
@@ -1077,6 +1082,246 @@ def parse_download_options(post: dict) -> tuple[str, DownloadOptions]:
         video_password=video_password,
     )
 
+
+# --- Form defaults -----------------------------------------------------------
+#
+# What the download form starts with where the browser has nothing remembered,
+# and what its "Reset to defaults" returns to. Edited on the Settings page and
+# kept on the server, so every browser and device shares one set. Only values
+# that differ from the built-in ones are stored: an environment default such as
+# DEFAULT_FOLDER still applies to whatever the user never changed.
+
+USER_DEFAULTS_TEXT_MAX_LENGTH = 500
+
+
+def _catalog_format_default(type_id: str) -> dict:
+    fmt = format_catalog.choice_default(type_id, 'format')
+    quality = format_catalog.format_option(type_id, fmt).get('quality')
+    return {'format': fmt, **({'quality': quality['default']} if quality else {})}
+
+
+def builtin_user_defaults() -> dict:
+    return {
+        'download_type': format_catalog.CATALOG['download_type']['default'],
+        'video': {'codec': format_catalog.choice_default('video', 'codec'), **_catalog_format_default('video')},
+        'audio': _catalog_format_default('audio'),
+        'captions': {
+            'format': format_catalog.choice_default('captions', 'format'),
+            'subtitle_language': format_catalog.choice_default('captions', 'subtitle_language'),
+            'subtitle_mode': format_catalog.choice_default('captions', 'subtitle_mode'),
+        },
+        'audio_tags': format_catalog.choice_default('audio', 'audio_tags'),
+        'folder': config.DEFAULT_FOLDER,
+        'custom_name_prefix': '',
+        'auto_start': True,
+        'playlist_item_limit': int(config.DEFAULT_OPTION_PLAYLIST_ITEM_LIMIT),
+        'sponsorblock': False,
+        'split_by_chapters': False,
+        'chapter_template': config.OUTPUT_TEMPLATE_CHAPTER,
+        'ytdl_options_presets': [],
+        'check_interval_minutes': int(config.SUBSCRIPTION_DEFAULT_CHECK_INTERVAL),
+        'title_regex': '',
+        'skip_subscriber_only': False,
+        'max_concurrent_downloads': int(config.MAX_CONCURRENT_DOWNLOADS),
+    }
+
+
+def _defaults_text(value, name: str, *, allow_empty: bool = True) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f'{name} must be a string')
+    value = value.strip()
+    if not value and not allow_empty:
+        raise ValueError(f'{name} must not be empty')
+    if len(value) > USER_DEFAULTS_TEXT_MAX_LENGTH or any(c in value for c in '\x00\r\n'):
+        raise ValueError(f'{name} must be a single line of at most {USER_DEFAULTS_TEXT_MAX_LENGTH} characters')
+    return value
+
+
+def _defaults_choice(value, name: str, allowed: set) -> str:
+    if not isinstance(value, str) or value not in allowed:
+        raise ValueError(f'{name} must be one of {sorted(allowed)}')
+    return value
+
+
+def _defaults_bool(value, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValueError(f'{name} must be true or false')
+    return value
+
+
+def _defaults_int(value, name: str, minimum: int, maximum: int | None = None) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise ValueError(f'{name} must be a whole number of at least {minimum}')
+    if maximum is not None and value > maximum:
+        raise ValueError(f'{name} must be at most {maximum}')
+    return value
+
+
+def _defaults_folder(value) -> str:
+    folder = _defaults_text(value, 'folder').strip('/')
+    if not config.CUSTOM_DIRS:
+        return ''
+    # The add path confines folders to the download directory when they are
+    # used; refusing traversal here keeps an unusable default from being stored.
+    if '\\' in folder or any(part == '..' for part in folder.split('/')):
+        raise ValueError('folder must be a path inside the download directory')
+    return folder
+
+
+def _defaults_section(value, name: str) -> dict:
+    if not isinstance(value, dict):
+        raise ValueError(f'{name} must be an object')
+    return value
+
+
+def _defaults_title_regex(value) -> str:
+    try:
+        return validate_title_regex(_defaults_text(value, 'title_regex'))
+    except re.error as exc:
+        raise ValueError(f'title_regex is not a valid regular expression: {exc}') from exc
+
+
+def _defaults_presets(value, *, strict: bool) -> list:
+    if not isinstance(value, list) or not all(isinstance(p, str) for p in value):
+        raise ValueError('ytdl_options_presets must be a list of preset names')
+    if strict and any(p not in config.YTDL_OPTIONS_PRESETS for p in value):
+        raise ValueError('ytdl_options_presets must only contain configured preset names')
+    # A preset removed from the server since it was saved is dropped, not the
+    # whole list.
+    return list(dict.fromkeys(p for p in value if p in config.YTDL_OPTIONS_PRESETS))
+
+
+def _defaults_format_quality(merged: dict, type_id: str) -> dict:
+    fmt = _defaults_choice(merged['format'], f'{type_id}.format', set(format_catalog.format_ids(type_id)))
+    quality = format_catalog.format_option(type_id, fmt).get('quality')
+    if quality is None:
+        return {'format': fmt, 'quality': 'best'}
+    allowed = set(format_catalog.option_ids(quality))
+    return {'format': fmt, 'quality': _defaults_choice(merged['quality'], f'{type_id}.quality for {fmt}', allowed)}
+
+
+def _defaults_video(value, base: dict) -> dict:
+    merged = {**base, **_defaults_section(value, 'video')}
+    return {
+        'codec': _defaults_choice(merged['codec'], 'video.codec', set(format_catalog.choice_ids('video', 'codec'))),
+        **_defaults_format_quality(merged, 'video'),
+    }
+
+
+def _defaults_audio(value, base: dict) -> dict:
+    merged = {**base, **_defaults_section(value, 'audio')}
+    return _defaults_format_quality(merged, 'audio')
+
+
+def _defaults_captions(value, base: dict) -> dict:
+    merged = {**base, **_defaults_section(value, 'captions')}
+    language = merged['subtitle_language']
+    if not isinstance(language, str) or not format_catalog.SUBTITLE_LANGUAGE_RE.fullmatch(language.strip()):
+        raise ValueError('captions.subtitle_language must be a language code such as en or zh-Hans')
+    return {
+        'format': _defaults_choice(merged['format'], 'captions.format', set(format_catalog.format_ids('captions'))),
+        'subtitle_language': language.strip(),
+        'subtitle_mode': _defaults_choice(
+            merged['subtitle_mode'], 'captions.subtitle_mode', set(format_catalog.choice_ids('captions', 'subtitle_mode'))),
+    }
+
+
+def normalize_user_defaults(raw: dict, *, strict: bool) -> dict:
+    """Merge ``raw`` over the built-in defaults, validating every field.
+
+    Strict mode (a save from the Settings page) raises ValueError on the first
+    invalid field. Otherwise (reading the stored file, which a changed presets
+    file or CUSTOM_DIRS may have outdated) an invalid field keeps its built-in
+    value with a warning, so one stale entry never discards the rest.
+    """
+    result = builtin_user_defaults()
+    validators = {
+        'download_type': lambda v: _defaults_choice(v, 'download_type', set(format_catalog.download_types())),
+        'video': lambda v: _defaults_video(v, result['video']),
+        'audio': lambda v: _defaults_audio(v, result['audio']),
+        'captions': lambda v: _defaults_captions(v, result['captions']),
+        'audio_tags': lambda v: _defaults_choice(v, 'audio_tags', set(format_catalog.choice_ids('audio', 'audio_tags'))),
+        'folder': _defaults_folder,
+        'custom_name_prefix': lambda v: _defaults_text(v, 'custom_name_prefix'),
+        'auto_start': lambda v: _defaults_bool(v, 'auto_start'),
+        'playlist_item_limit': lambda v: _defaults_int(v, 'playlist_item_limit', 0),
+        'sponsorblock': lambda v: _defaults_bool(v, 'sponsorblock'),
+        'split_by_chapters': lambda v: _defaults_bool(v, 'split_by_chapters'),
+        'chapter_template': lambda v: _defaults_text(v, 'chapter_template', allow_empty=False),
+        'ytdl_options_presets': lambda v: _defaults_presets(v, strict=strict),
+        'check_interval_minutes': lambda v: _defaults_int(v, 'check_interval_minutes', 1),
+        'title_regex': _defaults_title_regex,
+        'skip_subscriber_only': lambda v: _defaults_bool(v, 'skip_subscriber_only'),
+        'max_concurrent_downloads': lambda v: _defaults_int(
+            v, 'max_concurrent_downloads', 1, concurrency_ceiling(config)),
+    }
+    for key, validate in validators.items():
+        if key not in raw:
+            continue
+        try:
+            result[key] = validate(raw[key])
+        except ValueError as exc:
+            if strict:
+                raise
+            log.warning('Ignoring stored form default: %s', exc)
+    return result
+
+
+def _user_defaults_diff(values: dict) -> dict:
+    builtin = builtin_user_defaults()
+    return {k: v for k, v in values.items() if builtin.get(k) != v}
+
+
+user_defaults_store = AtomicJsonStore(
+    os.path.join(config.STATE_DIR, 'user_defaults.json'), kind='user_defaults')
+# Single thread: saves stay ordered and off the event loop (a save fsyncs).
+_user_defaults_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='state-user-defaults')
+
+
+def _load_saved_user_defaults() -> dict:
+    payload = user_defaults_store.load() or {}
+    saved = payload.get('defaults')
+    return saved if isinstance(saved, dict) else {}
+
+
+_user_defaults_saved = _load_saved_user_defaults()
+
+
+def current_user_defaults() -> dict:
+    return normalize_user_defaults(_user_defaults_saved, strict=False)
+
+
+async def _store_user_defaults(saved: dict) -> dict:
+    global _user_defaults_saved
+    await asyncio.get_running_loop().run_in_executor(
+        _user_defaults_executor, user_defaults_store.save, {'defaults': saved})
+    _user_defaults_saved = saved
+    values = current_user_defaults()
+    await dqueue.set_max_concurrent_downloads(values['max_concurrent_downloads'])
+    await sio.emit('defaults', serializer.encode(values))
+    return values
+
+
+@routes.get(config.URL_PREFIX + 'defaults')
+async def get_user_defaults(request):
+    return web.json_response(current_user_defaults())
+
+
+@routes.post(config.URL_PREFIX + 'defaults')
+async def save_user_defaults(request):
+    post = await _read_json_request(request)
+    try:
+        values = normalize_user_defaults(post, strict=True)
+    except ValueError as exc:
+        raise web.HTTPBadRequest(reason=str(exc)) from exc
+    log.info('Saving form defaults')
+    return web.json_response(await _store_user_defaults(_user_defaults_diff(values)))
+
+
+@routes.post(config.URL_PREFIX + 'defaults/reset')
+async def reset_user_defaults(request):
+    log.info('Resetting form defaults to the built-in values')
+    return web.json_response(await _store_user_defaults({}))
 
 @routes.post(config.URL_PREFIX + 'add')
 async def add(request):
@@ -1436,6 +1681,7 @@ async def connect(sid, environ):
     await sio.emit('subscriptions_all', serializer.encode([s.to_public_dict() for s in submgr.list_all()]), to=sid)
     await sio.emit('formats', serializer.encode(format_catalog.public_catalog()), to=sid)
     await sio.emit('configuration', serializer.encode(config.frontend_safe()), to=sid)
+    await sio.emit('defaults', serializer.encode(current_user_defaults()), to=sid)
     # The slow directory / ytdl-options emits must NOT be awaited here: the
     # connect ACK is sent only when this handler returns, so awaiting them
     # would delay the handshake past the engine.io ping window. Dispatch them
@@ -1492,6 +1738,7 @@ def get_custom_dirs():
     return result
 
 @routes.get(config.URL_PREFIX)
+@routes.get(config.URL_PREFIX + 'settings')
 async def index(request):
     response = web.FileResponse(os.path.join(config.BASE_DIR, 'ui/dist/metube/browser/index.html'))
     if 'metube_theme' not in request.cookies:

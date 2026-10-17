@@ -54,7 +54,7 @@ MeTube is configured with environment variables: `-e NAME=value` on the `docker 
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `MAX_CONCURRENT_DOWNLOADS` | `3` | Downloads that run at once; the rest wait their turn. |
+| `MAX_CONCURRENT_DOWNLOADS` | `3` | Downloads that run at once; the rest wait their turn. The Settings page can change it, up to 20 or this value if higher. |
 | `DEFAULT_OPTION_PLAYLIST_ITEM_LIMIT` | `0` | Default for the **Items Limit** field: how many entries of a playlist or channel to download (`0` = all). |
 | `CLEAR_COMPLETED_AFTER` | `0` | Seconds before finished and failed downloads leave the Completed list (`0` = never). |
 | `DELETE_FILE_ON_TRASHCAN` | `false` | Also delete the file from disk when its entry is removed from Completed. `ask` prompts each time. |

@@ -1,0 +1,326 @@
+<div class="settings-page">
+  <a routerLink="/" class="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-2 text-sm font-medium transition-colors">
+    <fa-icon [icon]="faArrowLeft" size="sm" />
+    Back to downloads
+  </a>
+  <h1 class="text-3xl font-light tracking-tight">Settings</h1>
+  <p class="text-muted-foreground mt-2 mb-8 max-w-[65ch] text-sm leading-relaxed">
+    The options the download form starts with. They apply to every browser that opens this MeTube.
+    The form still remembers what you pick yourself; its <span class="text-foreground font-medium whitespace-nowrap">Reset to defaults</span> button returns to these.
+  </p>
+
+  @if (draft && downloadTypes.length ? draft : null; as d) {
+    <section class="settings-section" aria-labelledby="settings-new">
+      <h2 id="settings-new" class="settings-section-heading">New downloads</h2>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-6">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Type</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="downloadTypeText" [(ngModel)]="d.download_type">
+              <hlm-select-trigger [class]="groupSelectClass" buttonId="default-download-type"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (type of downloadTypes; track type.id) {
+                  <hlm-select-item [value]="type.id">{{ type.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="settings-video">
+      <h2 id="settings-video" class="settings-section-heading">Video</h2>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Codec</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="codecText" [(ngModel)]="d.video.codec">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (codec of videoCodecs; track codec.id) {
+                  <hlm-select-item [value]="codec.id">{{ codec.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Format</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="videoFormatText" [(ngModel)]="d.video.format" (ngModelChange)="videoFormatChanged()">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (f of videoFormats; track f.id) {
+                  <hlm-select-item [value]="f.id">{{ f.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Quality</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="videoQualityText" [(ngModel)]="d.video.quality" [disabled]="videoQualities().length < 2">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (q of videoQualities(); track q.id) {
+                  <hlm-select-item [value]="q.id">{{ q.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="settings-audio">
+      <h2 id="settings-audio" class="settings-section-heading">Audio</h2>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Format</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="audioFormatText" [(ngModel)]="d.audio.format" (ngModelChange)="audioFormatChanged()">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (f of audioFormats; track f.id) {
+                  <hlm-select-item [value]="f.id">{{ f.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Quality</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="audioQualityText" [(ngModel)]="d.audio.quality" [disabled]="audioQualities().length < 2">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (q of audioQualities(); track q.id) {
+                  <hlm-select-item [value]="q.id">{{ q.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="Tags and cover art written into the file. Format Auto with Tags None saves the audio exactly as the site serves it.">Tags</app-help-label></hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="audioTagsText" [(ngModel)]="d.audio_tags">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (t of audioTags; track t.id) {
+                  <hlm-select-item [value]="t.id">{{ t.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="settings-captions">
+      <h2 id="settings-captions" class="settings-section-heading">Captions</h2>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Format</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="captionFormatText" [(ngModel)]="d.captions.format">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (f of captionFormats; track f.id) {
+                  <hlm-select-item [value]="f.id">{{ f.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <hlm-autocomplete-search [(search)]="d.captions.subtitle_language">
+            <hlm-autocomplete-input placeholder="e.g. en, es, zh-Hans" [showSearch]="false" inputId="default-subtitle-language">
+              <hlm-input-group-addon class="field-label"><app-help-label help="Subtitle language. Any language code works; these are suggestions.">Language</app-help-label></hlm-input-group-addon>
+            </hlm-autocomplete-input>
+            <hlm-autocomplete-content *hlmAutocompletePortal>
+              <div hlmAutocompleteList>
+                @for (lang of languageSuggestions(); track lang.id) {
+                  <hlm-autocomplete-item [value]="lang.id">
+                    <span class="w-16 shrink-0 font-mono text-xs">{{ lang.id }}</span>
+                    <span class="text-muted-foreground">{{ lang.text }}</span>
+                  </hlm-autocomplete-item>
+                }
+              </div>
+            </hlm-autocomplete-content>
+          </hlm-autocomplete-search>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label">Subtitle Source</hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="subtitleModeText" [(ngModel)]="d.captions.subtitle_mode">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (mode of subtitleModes; track mode.id) {
+                  <hlm-select-item [value]="mode.id">{{ mode.text }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="settings-output">
+      <h2 id="settings-output" class="settings-section-heading">Output</h2>
+      <div class="grid grid-cols-12 gap-4">
+        @if (customDirsEnabled()) {
+          <div class="col-span-12 md:col-span-6">
+            <hlm-autocomplete-search [(search)]="d.folder">
+              <hlm-autocomplete-input placeholder="Download directory" [showSearch]="false" inputId="default-folder">
+                <hlm-input-group-addon class="field-label"><app-help-label help="Folder inside the download directory. Leave empty to download to the directory itself.">Download Folder</app-help-label></hlm-input-group-addon>
+              </hlm-autocomplete-input>
+              <hlm-autocomplete-content *hlmAutocompletePortal>
+                <div hlmAutocompleteList>
+                  @for (dir of folderSuggestions(); track dir) {
+                    <hlm-autocomplete-item [value]="dir">{{ dir }}</hlm-autocomplete-item>
+                  }
+                </div>
+              </hlm-autocomplete-content>
+            </hlm-autocomplete-search>
+          </div>
+        }
+        <div class="col-span-12 md:col-span-6">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="Added to the start of downloaded filenames.">Custom Name Prefix</app-help-label></hlm-input-group-addon>
+            <input hlmInputGroupInput type="text" placeholder="None" aria-label="Custom name prefix" [(ngModel)]="d.custom_name_prefix">
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+          <label for="default-sponsorblock" class="flex items-center gap-2">
+            <hlm-switch inputId="default-sponsorblock" [(ngModel)]="d.sponsorblock" />
+            Remove sponsor segments
+          </label>
+          <label for="default-split-chapters" class="flex items-center gap-2">
+            <hlm-switch inputId="default-split-chapters" [(ngModel)]="d.split_by_chapters" />
+            Split by chapters
+          </label>
+        </div>
+        <div class="col-span-12">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="Output template for chapter files, used when Split by chapters is on.">Chapter Template</app-help-label></hlm-input-group-addon>
+            <input hlmInputGroupInput type="text" aria-label="Chapter template" [(ngModel)]="d.chapter_template">
+          </hlm-input-group>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="settings-behavior">
+      <h2 id="settings-behavior" class="settings-section-heading">Behavior</h2>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-6">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="Start downloads as soon as they are added.">Auto Start</app-help-label></hlm-input-group-addon>
+            <hlm-select class="field-select" [itemToString]="autoStartText" [(ngModel)]="d.auto_start">
+              <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                <hlm-select-item [value]="true">Yes</hlm-select-item>
+                <hlm-select-item [value]="false">No</hlm-select-item>
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 md:col-span-6">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="Maximum number of items to download from a playlist or channel (0 = no limit).">Items Limit</app-help-label></hlm-input-group-addon>
+            <input hlmInputGroupInput type="number" min="0" aria-label="Items limit" [(ngModel)]="d.playlist_item_limit">
+          </hlm-input-group>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="settings-queue">
+      <h2 id="settings-queue" class="settings-section-heading">Queue</h2>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-6">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="How many downloads run at the same time. Others wait in the queue. Takes effect on save; downloads already running finish.">Concurrent Downloads</app-help-label></hlm-input-group-addon>
+            <input hlmInputGroupInput type="number" min="1" aria-label="Concurrent downloads" [(ngModel)]="d.max_concurrent_downloads">
+          </hlm-input-group>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="settings-subscriptions">
+      <h2 id="settings-subscriptions" class="settings-section-heading">Subscriptions</h2>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-6">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="How often a new subscription is checked for new videos.">Check Interval (min)</app-help-label></hlm-input-group-addon>
+            <input hlmInputGroupInput type="number" min="1" aria-label="Check interval in minutes" [(ngModel)]="d.check_interval_minutes">
+          </hlm-input-group>
+        </div>
+        <div class="col-span-12 md:col-span-6">
+          <hlm-input-group>
+            <hlm-input-group-addon class="field-label"><app-help-label help="Only titles matching this Python-style regex are queued. Empty = all. Case-sensitive; use (?i) in the pattern for case-insensitive.">Title Filter</app-help-label></hlm-input-group-addon>
+            <input hlmInputGroupInput type="text" placeholder="Optional regex" aria-label="Title filter" [(ngModel)]="d.title_regex">
+          </hlm-input-group>
+        </div>
+        <label for="default-skip-subscriber-only" class="col-span-12 flex items-center gap-2 text-sm">
+          <hlm-switch inputId="default-skip-subscriber-only" [(ngModel)]="d.skip_subscriber_only" />
+          Skip members-only subscription videos
+        </label>
+      </div>
+    </section>
+
+    @if (presetNames.length > 0) {
+      <section class="settings-section" aria-labelledby="settings-ytdlp">
+        <h2 id="settings-ytdlp" class="settings-section-heading">yt-dlp</h2>
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-12 md:col-span-6">
+            <div class="border-input dark:bg-input/30 focus-within:border-ring focus-within:ring-ring/50 flex min-h-8 w-full items-stretch rounded-lg border transition-[color,box-shadow] focus-within:ring-3">
+              <span class="field-label text-muted-foreground flex items-center ps-2 text-sm font-medium"><app-help-label help="yt-dlp option presets configured on the server, applied in order.">Option Presets</app-help-label></span>
+              <hlm-combobox-multiple class="min-w-0 flex-1" [closeOnSelect]="false" [(ngModel)]="d.ytdl_options_presets">
+                <hlm-combobox-chips class="min-h-8 rounded-none border-0 bg-transparent shadow-none focus-within:ring-0 dark:bg-transparent">
+                  <ng-template hlmComboboxValues let-values>
+                    @for (value of values; track value) {
+                      <hlm-combobox-chip [value]="value">{{ value }}</hlm-combobox-chip>
+                    }
+                  </ng-template>
+                  <input hlmComboboxChipInput [placeholder]="d.ytdl_options_presets.length ? '' : 'None'" aria-label="Default option presets" />
+                </hlm-combobox-chips>
+                <hlm-combobox-content *hlmComboboxPortal>
+                  <hlm-combobox-empty>No presets configured.</hlm-combobox-empty>
+                  <div hlmComboboxList>
+                    @for (preset of presetNames; track preset) {
+                      <hlm-combobox-item [value]="preset">{{ preset }}</hlm-combobox-item>
+                    }
+                  </div>
+                </hlm-combobox-content>
+              </hlm-combobox-multiple>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <div class="settings-actions">
+      <button type="button" hlmBtn variant="ghost" class="-ms-2.5" (click)="restoreBuiltIn()" [disabled]="saving">
+        Restore built-in defaults
+      </button>
+      <span class="ms-auto flex items-center gap-2">
+        @if (dirty()) {
+          <span class="text-muted-foreground me-2 text-sm" role="status">Unsaved changes</span>
+        }
+        <button type="button" hlmBtn variant="outline" (click)="discard()" [disabled]="!dirty() || saving">Discard</button>
+        <button type="button" hlmBtn (click)="save()" [disabled]="!dirty() || saving">
+          @if (saving) {
+            <hlm-spinner class="text-sm" />
+          }
+          Save defaults
+        </button>
+      </span>
+    </div>
+  } @else {
+    <div class="text-muted-foreground flex items-center gap-2 py-12 text-sm" role="status">
+      <hlm-spinner class="text-sm" /> Loading the current defaults…
+    </div>
+  }
+</div>

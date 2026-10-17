@@ -1,622 +1,1065 @@
-<nav class="navbar navbar-expand-md navbar-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center" href="#">
-      <img src="assets/icons/android-chrome-192x192.png" alt="MeTube Logo" height="32" class="me-2">
+<nav class="bg-zinc-900 text-zinc-50 dark:bg-zinc-950">
+  <!-- Below sm the stats take a row of their own under the logo and buttons,
+       wrapping rather than scrolling sideways out of sight. -->
+  <div class="flex flex-wrap items-center gap-x-6 px-4 sm:h-14 sm:flex-nowrap">
+    <a class="flex h-14 shrink-0 items-center gap-2 text-xl font-medium" routerLink="/">
+      <img src="assets/icons/android-chrome-192x192.png" alt="MeTube Logo" height="32" width="32">
       MeTube
     </a>
-    <div class="download-metrics">
+    <div class="order-last flex w-full min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-400 empty:hidden max-sm:pb-3 sm:order-none sm:w-auto sm:flex-nowrap sm:overflow-x-auto">
       @if (activeDownloads > 0) {
-        <div class="metric">
-          <fa-icon [icon]="faDownload" class="text-primary" />
+        <div class="flex items-center gap-1.5 whitespace-nowrap">
+          <fa-icon [icon]="faDownload" class="text-info" />
           <span>{{activeDownloads}} downloading</span>
         </div>
       }
       @if (queuedDownloads > 0) {
-        <div class="metric">
+        <div class="flex items-center gap-1.5 whitespace-nowrap">
           <fa-icon [icon]="faClock" class="text-warning" />
           <span>{{queuedDownloads}} queued</span>
         </div>
       }
       @if (completedDownloads > 0) {
-        <div class="metric">
+        <div class="flex items-center gap-1.5 whitespace-nowrap">
           <fa-icon [icon]="faCheck" class="text-success" />
           <span>{{completedDownloads}} completed</span>
         </div>
       }
       @if (failedDownloads > 0) {
-        <div class="metric">
-          <fa-icon [icon]="faTimesCircle" class="text-danger" />
+        <div class="flex items-center gap-1.5 whitespace-nowrap">
+          <fa-icon [icon]="faTimesCircle" class="text-destructive" />
           <span>{{failedDownloads}} failed</span>
         </div>
       }
       @if ((totalSpeed | speed) !== '') {
-        <div class="metric">
+        <div class="flex items-center gap-1.5 whitespace-nowrap">
           <fa-icon [icon]="faTachometerAlt" class="text-info" />
           <span>{{totalSpeed | speed }}</span>
         </div>
       }
     </div>
-    <!--
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsDefault" aria-controls="navbarsDefault" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+    <div class="ms-auto flex items-center gap-1">
+    <a hlmBtn variant="ghost" size="sm" routerLink="/settings"
+      routerLinkActive="bg-white/10" ariaCurrentWhenActive="page"
+      class="max-sm:size-10 text-zinc-50 hover:bg-white/10 hover:text-zinc-50 dark:hover:bg-white/10"
+      aria-label="Settings"
+      data-tooltip="Settings">
+      <fa-icon [icon]="faSlidersH" />
+    </a>
+    <button type="button" hlmBtn variant="ghost" size="sm"
+      class="max-sm:h-10 max-sm:px-3 text-zinc-50 hover:bg-white/10 hover:text-zinc-50 aria-expanded:bg-white/10 aria-expanded:text-zinc-50 dark:hover:bg-white/10"
+      id="theme-select"
+      aria-label="Theme"
+      data-tooltip="Theme"
+      [hlmDropdownMenuTrigger]="themeMenu"
+      align="end">
+      @if (activeTheme) {
+        <fa-icon [icon]="activeTheme.icon" />
+      }
+      <fa-icon [icon]="faChevronDown" size="xs" class="opacity-60" />
     </button>
-    <div class="collapse navbar-collapse" id="navbarsDefault">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-        </li>
-      </ul>
-    </div>
-    -->
-    <div class="navbar-nav ms-auto">
-      <div class="nav-item dropdown" ngbDropdown placement="bottom-end">
-        <button class="btn btn-link nav-link py-2 px-0 px-sm-2 dropdown-toggle d-flex align-items-center"
-          id="theme-select"
-          type="button"
-          aria-expanded="false"
-          ngbDropdownToggle>
-          @if(activeTheme){
-          <fa-icon [icon]="activeTheme.icon" />
+    <ng-template #themeMenu>
+      <hlm-dropdown-menu class="w-40">
+        <hlm-dropdown-menu-group>
+          @for (theme of themes; track theme.id) {
+            <button type="button" hlmDropdownMenuRadio
+              [checked]="activeTheme === theme"
+              [keepOpen]="false"
+              (triggered)="themeChanged(theme)">
+              <fa-icon [icon]="theme.icon" class="w-4 opacity-60" />
+              {{ theme.displayName }}
+              <hlm-dropdown-menu-radio-indicator />
+            </button>
           }
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end position-absolute" aria-labelledby="theme-select" ngbDropdownMenu>
-          @for (theme of themes; track theme) {
-            <li>
-              <button type="button" class="dropdown-item d-flex align-items-center"
-              [class.active]="activeTheme === theme"
-              ngbDropdownItem
-              (click)="themeChanged(theme)">
-                <span class="me-2 opacity-50">
-                  <fa-icon [icon]="theme.icon" />
-                </span>
-                {{ theme.displayName }}
-                <span class="ms-auto"
-                [class.d-none]="activeTheme !== theme">
-                <fa-icon [icon]="faCheck" />
-                </span>
-              </button>
-            </li>
-          }
-        </ul>
-      </div>
+        </hlm-dropdown-menu-group>
+      </hlm-dropdown-menu>
+    </ng-template>
     </div>
   </div>
 </nav>
 
-<main role="main" class="container container-xl">
+<main role="main" class="mx-auto w-full px-3 min-[1200px]:max-w-[1140px] min-[1400px]:max-w-[1320px]">
+  <router-outlet />
+  <div [hidden]="onSettingsPage()">
   <form #f="ngForm">
-    <div class="container add-url-box">
-      <!-- Main URL Input with Download Button -->
-      <div class="row mb-4">
-        <div class="col">
-          <ng-template #urlBarActions>
-            @if (addInProgress && cancelRequested) {
-              <button class="btn btn-warning btn-lg px-3" type="button" disabled>
-                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                Canceling...
-              </button>
-            } @else if (addInProgress) {
-              <button class="btn btn-secondary btn-lg px-3 add-progress-btn" type="button" disabled>
-                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                Adding...
-              </button>
-              <button class="btn btn-outline-danger btn-lg px-3 add-cancel-btn"
-                type="button"
+    <div class="add-url-box">
+      <!-- URL bar: the field and a split button. Download is the main action; the
+           labelled second half opens a menu that switches the bar to Subscribe,
+           which shows what a subscription will do before it is committed. -->
+      <div class="mb-6" data-add-bar [attr.aria-busy]="addInProgress">
+        <div class="flex flex-col gap-2 md:flex-row md:gap-0">
+          <div class="relative min-w-0 md:flex-1 focus-within:z-10">
+          <input #urlInput hlmInput type="text"
+            inputmode="url"
+            enterkeyhint="go"
+            autocomplete="off"
+            spellcheck="false"
+            class="add-url-input relative h-11 min-w-0 text-base shadow-xs focus-visible:z-10 focus-visible:ring-offset-2 focus-visible:ring-offset-background md:rounded-e-none md:border-e-0 md:text-base"
+            [class.pe-12]="canPaste"
+            [placeholder]="downloads.loading ? 'Connecting to server…' : addMode === 'subscribe' ? 'Paste a channel or playlist link' : 'Paste a video, playlist or channel link'"
+            [attr.aria-label]="addMode === 'subscribe' ? 'Channel or playlist link to subscribe to' : 'Video, playlist or channel link'"
+            [attr.aria-invalid]="addError ? 'true' : null"
+            [attr.aria-describedby]="addError ? 'add-url-error' : null"
+            [(ngModel)]="addUrl"
+            (ngModelChange)="clearAddError()"
+            [ngModelOptions]="{standalone: true}"
+            [disabled]="downloads.loading">
+          @if (canPaste) {
+            <button hlmBtn type="button" variant="ghost" size="icon"
+              class="text-muted-foreground absolute inset-y-0 end-1 z-10 my-auto size-9"
+              [disabled]="downloads.loading || addInProgress"
+              (click)="pasteUrl()"
+              aria-label="Paste link from clipboard"
+              data-tooltip="Paste">
+              <fa-icon [icon]="faPaste" />
+            </button>
+          }
+          </div>
+          <div class="flex">
+            <!-- aria-disabled rather than disabled while busy, so the label stays
+                 readable and focus stays on the button. -->
+            <button hlmBtn type="submit"
+              class="relative h-11 flex-1 gap-2 rounded-e-none px-5 text-base focus-visible:z-10 focus-visible:ring-offset-2 focus-visible:ring-offset-background md:w-40 md:flex-none md:rounded-s-none"
+              [attr.aria-disabled]="addInProgress ? 'true' : null"
+              [disabled]="downloads.loading"
+              (click)="submitAdd()">
+              @if (addInProgress && cancelRequested) {
+                <hlm-spinner class="text-sm" /> Canceling…
+              } @else if (addInProgress) {
+                <hlm-spinner class="text-sm" /> Adding…
+              } @else {
+                {{ addMode === 'subscribe' ? 'Subscribe' : 'Download' }}
+              }
+            </button>
+            @if (addInProgress) {
+              <button hlmBtn type="button" size="icon"
+                class="add-bar-half relative size-11 rounded-s-none focus-visible:z-10 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                [disabled]="cancelRequested"
                 (click)="cancelAdding()"
-                aria-label="Cancel adding URL"
-                title="Cancel adding URL">
-                <fa-icon [icon]="faTimesCircle" class="me-1" /> Cancel
-              </button>
-            } @else if (subscribeInProgress) {
-              <div class="btn-group download-split">
-                <button class="btn btn-primary btn-lg px-4" type="button" disabled>
-                  Download
-                </button>
-                <button class="btn btn-primary btn-lg dropdown-toggle dropdown-toggle-split" type="button" disabled>
-                  <span class="visually-hidden">More download actions</span>
-                </button>
-              </div>
-              <button class="btn btn-outline-secondary btn-lg px-3" type="button" disabled>
-                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                Subscribing...
+                aria-label="Cancel adding this link"
+                data-tooltip="Cancel">
+                <fa-icon [icon]="faXmark" />
               </button>
             } @else {
-              <!-- Download stays first in the DOM so Enter in the URL box submits it. -->
-              <div class="btn-group download-split" ngbDropdown placement="bottom-end" container="body">
-                <button class="btn btn-primary btn-lg px-4" type="submit"
-                  (click)="addDownload()"
-                  [disabled]="downloads.loading">
-                  Download
-                </button>
-                <button class="btn btn-primary btn-lg dropdown-toggle dropdown-toggle-split" type="button"
-                  ngbDropdownToggle
-                  [disabled]="downloads.loading">
-                  <span class="visually-hidden">More download actions</span>
-                </button>
-                <div ngbDropdownMenu>
-                  <button type="button" ngbDropdownItem
-                    (click)="browsePlaylist()"
-                    [disabled]="!addUrl || !addUrl.trim()">
-                    Browse&hellip;
-                  </button>
-                </div>
-              </div>
-              <button class="btn btn-outline-secondary btn-lg px-3" type="button"
-                (click)="addSubscription()"
-                [disabled]="downloads.loading">
-                Subscribe
+              <!-- Named for the other action, so the way to it is readable at a
+                   glance rather than hidden behind a bare chevron. -->
+              <button hlmBtn type="button"
+                class="add-bar-half relative h-11 gap-1.5 rounded-s-none px-3 text-sm focus-visible:z-10 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                [disabled]="downloads.loading"
+                [hlmDropdownMenuTrigger]="addModeMenu"
+                align="end">
+                {{ addMode === 'subscribe' ? 'Download' : 'Subscribe' }}
+                <fa-icon [icon]="faChevronDown" size="xs" />
               </button>
             }
-          </ng-template>
-
-          <!-- Narrow viewports: full-width field, then Bootstrap btn-group (no faux input-group strip) -->
-          <div class="vstack gap-2 d-md-none">
-            <input type="text"
-              autocomplete="off"
-              spellcheck="false"
-              class="form-control form-control-lg"
-              placeholder="Enter video, channel, or playlist URL"
-              [(ngModel)]="addUrl"
-              [ngModelOptions]="{standalone: true}"
-              [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-            <div class="btn-group w-100" role="group" aria-label="Download or subscribe">
-              <ng-container [ngTemplateOutlet]="urlBarActions" />
-            </div>
-          </div>
-
-          <!-- md and up: standard input-group so Bootstrap handles fused borders -->
-          <div class="input-group input-group-lg shadow-sm d-none d-md-flex">
-            <input type="text"
-              autocomplete="off"
-              spellcheck="false"
-              class="form-control form-control-lg"
-              placeholder="Enter video, channel, or playlist URL"
-              [(ngModel)]="addUrl"
-              [ngModelOptions]="{standalone: true}"
-              [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-            <ng-container [ngTemplateOutlet]="urlBarActions" />
+            <ng-template #addModeMenu>
+              <hlm-dropdown-menu class="w-72">
+                <hlm-dropdown-menu-group>
+                  <button type="button" hlmDropdownMenuRadio class="items-start py-2 text-start"
+                    aria-labelledby="add-mode-download-name"
+                    aria-describedby="add-mode-download-hint"
+                    [checked]="addMode === 'download'"
+                    [keepOpen]="false"
+                    (triggered)="setAddMode('download')">
+                    <span class="grid gap-0.5">
+                      <span id="add-mode-download-name" class="font-medium">Download once</span>
+                      <span id="add-mode-download-hint" class="text-muted-foreground text-xs">Save it now, with the options below.</span>
+                    </span>
+                    <hlm-dropdown-menu-radio-indicator />
+                  </button>
+                  <button type="button" hlmDropdownMenuRadio class="items-start py-2 text-start"
+                    aria-labelledby="add-mode-subscribe-name"
+                    aria-describedby="add-mode-subscribe-hint"
+                    [checked]="addMode === 'subscribe'"
+                    [keepOpen]="false"
+                    (triggered)="setAddMode('subscribe')">
+                    <span class="grid gap-0.5">
+                      <span id="add-mode-subscribe-name" class="font-medium">Subscribe to new uploads</span>
+                      <span id="add-mode-subscribe-hint" class="text-muted-foreground text-xs">Check a channel or playlist on a schedule and download what's new.</span>
+                    </span>
+                    <hlm-dropdown-menu-radio-indicator />
+                  </button>
+                </hlm-dropdown-menu-group>
+                <hlm-dropdown-menu-separator />
+                <!-- Not a mode: it opens the playlist's entries, and the ones
+                     ticked are queued with the options below. -->
+                <button type="button" hlmDropdownMenuItem class="items-start py-2 text-start"
+                  aria-labelledby="add-browse-name"
+                  aria-describedby="add-browse-hint"
+                  [disabled]="!addUrl || !addUrl.trim()"
+                  (triggered)="browsePlaylist()">
+                  <fa-icon [icon]="faListCheck" class="mt-0.5 w-4 opacity-60" />
+                  <span class="grid gap-0.5">
+                    <span id="add-browse-name" class="font-medium">Pick from a playlist&hellip;</span>
+                    <span id="add-browse-hint" class="text-muted-foreground text-xs">List a playlist or channel's videos and choose which to download.</span>
+                  </span>
+                </button>
+              </hlm-dropdown-menu>
+            </ng-template>
           </div>
         </div>
+
+        @if (addError) {
+          <p id="add-url-error" class="text-destructive mt-2 text-sm" role="alert">
+            {{ addError }}
+            @if (addErrorKeptInFailed) {
+              <span class="text-muted-foreground">It's kept in
+                <button type="button" class="text-link cursor-pointer" (click)="setListView('failed')">Failed</button>
+                if you want to retry it.</span>
+            }
+          </p>
+        }
+
+        @if (addMode === 'subscribe') {
+          <div class="bg-muted/40 mt-3 grid grid-cols-12 gap-4 rounded-lg border p-3" data-settings-section="subscription">
+            <p class="text-muted-foreground col-span-12 text-sm">New uploads are downloaded with the type, format and quality chosen below.</p>
+            <div class="col-span-12 md:col-span-4">
+              <hlm-input-group class="bg-background">
+                <hlm-input-group-addon class="field-label"><app-help-label for="subscribe-check-interval" help="How often to look for new videos.">Check every (min)</app-help-label></hlm-input-group-addon>
+                <input hlmInputGroupInput type="number" id="subscribe-check-interval"
+                  min="1"
+                  name="checkIntervalMinutes"
+                  (keydown)="digitsOnly($event)"
+                  [(ngModel)]="checkIntervalMinutes"
+                  (ngModelChange)="checkIntervalChanged()"
+                  [disabled]="downloads.loading">
+              </hlm-input-group>
+            </div>
+            <div class="col-span-12 md:col-span-8">
+              <hlm-input-group class="bg-background">
+                <hlm-input-group-addon class="field-label"><app-help-label for="subscribe-title-filter" help="Only titles matching this Python-style regex are queued. Empty = all. Case-sensitive; use (?i) in the pattern for case-insensitive.">Title filter</app-help-label></hlm-input-group-addon>
+                <input #titleRegexInput hlmInputGroupInput type="text" id="subscribe-title-filter"
+                  name="titleRegex"
+                  [attr.aria-invalid]="titleRegexError ? 'true' : null"
+                  [attr.aria-describedby]="titleRegexError ? 'title-regex-error' : null"
+                  [(ngModel)]="titleRegex"
+                  (ngModelChange)="titleRegexError = null"
+                  [disabled]="downloads.loading"
+                  placeholder="Optional regex">
+              </hlm-input-group>
+              @if (titleRegexError) {
+                <p id="title-regex-error" class="text-destructive mt-1.5 text-sm" role="alert">{{ titleRegexError }}</p>
+              }
+            </div>
+            <div class="col-span-12 flex items-center gap-2 text-sm">
+              <hlm-switch inputId="checkbox-skip-subscriber-only"
+                aria-labelledby="skip-subscriber-only-label"
+                name="skipSubscriberOnly" [(ngModel)]="skipSubscriberOnly"
+                [disabled]="downloads.loading" />
+              <app-help-label id="skip-subscriber-only-label" for="checkbox-skip-subscriber-only" help="Skips videos yt-dlp marks as members-only (channel Join).">Skip members-only videos</app-help-label>
+            </div>
+          </div>
+        }
       </div>
 
       <!-- Options Row: built from the server's catalog. Each type shows the
            fields it carries, in the order Type, Codec, Format, Quality, Tags,
            Language, Subtitle Source. -->
       @if (catalog) {
-      <div class="row mb-3 g-3">
+        <div class="mb-4 grid grid-cols-12 gap-4">
           <div [class]="optionColumnClass()">
-            <div class="input-group">
-              <span class="input-group-text">Type</span>
-              <select class="form-select"
+            <hlm-input-group>
+              <hlm-input-group-addon class="field-label">Type</hlm-input-group-addon>
+              <hlm-select class="field-select"
                 name="downloadType"
+                [itemToString]="downloadTypeText"
                 [(ngModel)]="downloadType"
-                (change)="downloadTypeChanged()"
-                [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                @for (type of downloadTypes; track type.id) {
-                  <option [ngValue]="type.id">{{ type.text }}</option>
-                }
-              </select>
-            </div>
+                (ngModelChange)="downloadTypeChanged()"
+                [disabled]="downloads.loading">
+                <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+                <hlm-select-content *hlmSelectPortal>
+                  @for (o of downloadTypes; track o.id) {
+                    <hlm-select-item [value]="o.id">{{ o.text }}</hlm-select-item>
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </hlm-input-group>
           </div>
           @if (codecOptions.length) {
           <div [class]="optionColumnClass()">
-            <div class="input-group">
-              <span class="input-group-text">Codec</span>
-              <select class="form-select"
+            <hlm-input-group>
+              <hlm-input-group-addon class="field-label">Codec</hlm-input-group-addon>
+              <hlm-select class="field-select"
                 name="codec"
+                [itemToString]="codecText"
                 [(ngModel)]="codec"
-                (change)="codecChanged()"
-                [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                @for (vc of codecOptions; track vc.id) {
-                  <option [ngValue]="vc.id">{{ vc.text }}</option>
-                }
-              </select>
-            </div>
+                (ngModelChange)="codecChanged()"
+                [disabled]="downloads.loading">
+                <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+                <hlm-select-content *hlmSelectPortal>
+                  @for (o of codecOptions; track o.id) {
+                    <hlm-select-item [value]="o.id">{{ o.text }}</hlm-select-item>
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </hlm-input-group>
           </div>
           }
           <div [class]="optionColumnClass()">
-            <div class="input-group">
+            <hlm-input-group>
               @if (hasSubtitleSettings()) {
-                <span class="input-group-text help-title" ngbPopover="Subtitle output format for captions mode." triggers="click" autoClose="outside" container="body">Format</span>
+                <hlm-input-group-addon class="field-label"><app-help-label help="Subtitle output format for captions mode.">Format</app-help-label></hlm-input-group-addon>
               } @else {
-                <span class="input-group-text">Format</span>
+                <hlm-input-group-addon class="field-label">Format</hlm-input-group-addon>
               }
-              <select class="form-select"
+              <hlm-select class="field-select"
                 name="format"
+                [itemToString]="formatText"
                 [(ngModel)]="format"
-                (change)="formatChanged()"
-                [disabled]="addInProgress || subscribeInProgress || downloads.loading || !hasFormatChoice()">
-                @for (f of formatOptions; track f.id) {
-                  <option [ngValue]="f.id">{{ f.text }}</option>
-                }
-              </select>
-            </div>
+                (ngModelChange)="formatChanged()"
+                [disabled]="downloads.loading || !hasFormatChoice()">
+                <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+                <hlm-select-content *hlmSelectPortal>
+                  @for (o of formatOptions; track o.id) {
+                    <hlm-select-item [value]="o.id">{{ o.text }}</hlm-select-item>
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </hlm-input-group>
           </div>
           @if (qualities.length) {
           <div [class]="optionColumnClass()">
-            <div class="input-group">
-              <span class="input-group-text">Quality</span>
-              <select class="form-select"
+            <hlm-input-group>
+              <hlm-input-group-addon class="field-label">Quality</hlm-input-group-addon>
+              <hlm-select class="field-select"
                 name="quality"
+                [itemToString]="qualityText"
                 [(ngModel)]="quality"
-                (change)="qualityChanged()"
-                [disabled]="addInProgress || subscribeInProgress || downloads.loading || !hasQualityChoice()">
-                @for (q of qualities; track q.id) {
-                  <option [ngValue]="q.id">{{ q.text }}</option>
-                }
-              </select>
-            </div>
+                (ngModelChange)="qualityChanged()"
+                [disabled]="downloads.loading || !hasQualityChoice()">
+                <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+                <hlm-select-content *hlmSelectPortal>
+                  @for (o of qualities; track o.id) {
+                    <hlm-select-item [value]="o.id">{{ o.text }}</hlm-select-item>
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </hlm-input-group>
           </div>
           }
           @if (currentType()?.audio_tags) {
           <div [class]="optionColumnClass()">
-            <div class="input-group">
-              <span class="input-group-text help-title" ngbPopover="Tags and cover art written into the file. Format Auto with Tags None saves the audio exactly as the site serves it." triggers="click" autoClose="outside" container="body">Tags</span>
-              <select class="form-select"
+            <hlm-input-group>
+              <hlm-input-group-addon class="field-label"><app-help-label help="Tags and cover art written into the file. Format Auto with Tags None saves the audio exactly as the site serves it.">Tags</app-help-label></hlm-input-group-addon>
+              <hlm-select class="field-select"
                 name="audioTags"
+                [itemToString]="audioTagsText"
                 [ngModel]="displayedAudioTags()"
                 (ngModelChange)="audioTagsChanged($event)"
-                [disabled]="addInProgress || subscribeInProgress || downloads.loading || !tagsSupported()">
-                @for (t of audioTagsOptions; track t.id) {
-                  <option [ngValue]="t.id">{{ t.text }}</option>
-                }
-              </select>
-            </div>
+                [disabled]="downloads.loading || !tagsSupported()">
+                <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+                <hlm-select-content *hlmSelectPortal>
+                  @for (o of audioTagsOptions; track o.id) {
+                    <hlm-select-item [value]="o.id">{{ o.text }}</hlm-select-item>
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </hlm-input-group>
           </div>
           }
           @if (currentType()?.subtitle_language) {
           <div [class]="optionColumnClass()">
-            <div class="input-group">
-              <span class="input-group-text help-title" ngbPopover="Subtitle language (you can type any language code)." triggers="click" autoClose="outside" container="body">Language</span>
-              <input class="form-control"
-                type="text"
-                list="subtitleLanguageOptions"
-                name="subtitleLanguage"
-                [(ngModel)]="subtitleLanguage"
-                (change)="subtitleLanguageChanged()"
-                [disabled]="addInProgress || subscribeInProgress || downloads.loading"
-                placeholder="e.g. en, es, zh-Hans">
-              <datalist id="subtitleLanguageOptions">
-                @for (lang of subtitleLanguages; track lang.id) {
-                  <option [value]="lang.id">{{ lang.text }}</option>
-                }
-              </datalist>
-            </div>
+            <hlm-autocomplete-search
+              [search]="subtitleLanguage"
+              (searchChange)="subtitleLanguageSearchChanged($event)"
+              [disabled]="downloads.loading">
+              <hlm-autocomplete-input placeholder="e.g. en, es, zh-Hans" [showSearch]="false" inputId="subtitleLanguage">
+                <hlm-input-group-addon class="field-label"><app-help-label help="Subtitle language (you can type any language code).">Language</app-help-label></hlm-input-group-addon>
+              </hlm-autocomplete-input>
+              <hlm-autocomplete-content *hlmAutocompletePortal>
+                <div hlmAutocompleteList>
+                  @for (lang of subtitleLanguageSuggestions(); track lang.id) {
+                    <hlm-autocomplete-item [value]="lang.id">
+                      <span class="w-16 shrink-0 font-mono text-xs">{{ lang.id }}</span>
+                      <span class="text-muted-foreground">{{ lang.text }}</span>
+                    </hlm-autocomplete-item>
+                  }
+                </div>
+              </hlm-autocomplete-content>
+            </hlm-autocomplete-search>
           </div>
           }
           @if (currentType()?.subtitle_mode) {
           <div [class]="optionColumnClass()">
-            <div class="input-group">
-              <span class="input-group-text help-title" ngbPopover="Choose manual, auto, or fallback preference for captions mode." triggers="click" autoClose="outside" container="body">Subtitle Source</span>
-              <select class="form-select"
+            <hlm-input-group>
+              <hlm-input-group-addon class="field-label"><app-help-label help="Choose manual, auto, or fallback preference for captions mode.">Subtitle Source</app-help-label></hlm-input-group-addon>
+              <hlm-select class="field-select"
                 name="subtitleMode"
+                [itemToString]="subtitleModeText"
                 [(ngModel)]="subtitleMode"
-                (change)="subtitleModeChanged()"
-                [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                @for (mode of subtitleModes; track mode.id) {
-                  <option [ngValue]="mode.id">{{ mode.text }}</option>
-                }
-              </select>
-            </div>
+                (ngModelChange)="subtitleModeChanged()"
+                [disabled]="downloads.loading">
+                <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+                <hlm-select-content *hlmSelectPortal>
+                  @for (o of subtitleModes; track o.id) {
+                    <hlm-select-item [value]="o.id">{{ o.text }}</hlm-select-item>
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </hlm-input-group>
           </div>
           }
-      </div>
+        </div>
       }
 
-      <div class="row mb-3 g-3">
-        <div class="col-12 text-start">
-          <button type="button"
-            class="btn btn-link p-0 text-decoration-none"
-            (click)="toggleAdvanced()"
-            [attr.aria-expanded]="isAdvancedOpen"
+      <hlm-collapsible [expanded]="isAdvancedOpen" (expandedChange)="isAdvancedOpen = $event">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <button type="button" hlmCollapsibleTrigger
+            class="text-primary inline-flex cursor-pointer items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
             aria-controls="advancedOptions">
             Advanced Options
-            <fa-icon
-              [icon]="isAdvancedOpen ? faChevronDown : faChevronRight"
-              class="ms-1" />
+            <fa-icon [icon]="faChevronRight" size="xs"
+              class="inline-flex transition-transform duration-200 ease-out motion-reduce:transition-none"
+              [class.rotate-90]="isAdvancedOpen" />
           </button>
+          <span class="-me-2 flex items-center gap-1">
+            <button type="button" hlmBtn variant="ghost" size="sm"
+              class="text-muted-foreground"
+              (click)="resetFormToDefaults()"
+              [disabled]="downloads.loading"
+              data-tooltip="Forget the choices remembered here and use the saved defaults">
+              <fa-icon [icon]="faRotateLeft" /> Reset to defaults
+            </button>
+            <a hlmBtn variant="ghost" size="sm" class="text-muted-foreground" routerLink="/settings">
+              <fa-icon [icon]="faSlidersH" /> Edit defaults
+            </a>
+          </span>
         </div>
-      </div>
 
-      <!-- Advanced Options Panel -->
-      <div class="row">
-        <div class="col-12">
-          <div class="collapse show" id="advancedOptions" [ngbCollapse]="!isAdvancedOpen">
-            <div class="pt-1 pb-2">
-              <!-- Output -->
-              <div class="settings-section-label">Output</div>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Type to filter existing folders, or enter a new folder name." triggers="click" autoClose="outside" container="body">Download Folder</span>
-                    <input type="text"
-                      class="form-control"
-                      placeholder="Default"
-                      name="folder"
-                      [(ngModel)]="folder"
-                      [ngbTypeahead]="searchFolder"
-                      [editable]="!!downloads.configuration['CREATE_CUSTOM_DIRS']"
-                      (focus)="folderFocus$.next($any($event.target).value)"
-                      (click)="folderClick$.next($any($event.target).value)"
-                      #folderTypeahead="ngbTypeahead"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Add a prefix to downloaded filenames." triggers="click" autoClose="outside" container="body">Custom Name Prefix</span>
-                    <input type="text"
-                      class="form-control"
-                      placeholder="Default"
-                      name="customNamePrefix"
-                      [(ngModel)]="customNamePrefix"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="row g-2 align-items-center">
-                    <div class="col-auto">
-                      <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="checkbox-sponsorblock"
-                          name="sponsorblock" [(ngModel)]="sponsorblock" (change)="sponsorblockChanged()"
-                          [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                        <label class="form-check-label" for="checkbox-sponsorblock"
-                          ngbPopover="Cut out sponsor segments using SponsorBlock's crowd-sourced markers (YouTube only)."
-                          triggers="hover" container="body">Remove sponsor segments</label>
-                      </div>
+        <!-- Advanced Options Panel -->
+        <hlm-collapsible-content id="advancedOptions">
+          <div class="pt-1 pb-2">
+            <!-- Output -->
+            <div class="settings-section-label">Output</div>
+            <div class="grid grid-cols-12 gap-4" data-settings-section="output">
+              <div class="col-span-12 md:col-span-6">
+                <hlm-autocomplete-search
+                  [search]="folder"
+                  (searchChange)="folderSearchChanged($event)"
+                  [disabled]="downloads.loading">
+                  <hlm-autocomplete-input placeholder="Default" [showSearch]="false" inputId="folder" (focusout)="folderBlurred()">
+                    <hlm-input-group-addon class="field-label"><app-help-label help="Type to filter existing folders, or enter a new folder name.">Download Folder</app-help-label></hlm-input-group-addon>
+                  </hlm-autocomplete-input>
+                  <hlm-autocomplete-content *hlmAutocompletePortal>
+                    <div hlmAutocompleteList>
+                      @for (dir of folderSuggestions(); track dir) {
+                        <hlm-autocomplete-item [value]="dir">{{ dir }}</hlm-autocomplete-item>
+                      }
                     </div>
-                    <div class="col-auto">
-                      <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="checkbox-split-chapters"
-                          name="splitByChapters" [(ngModel)]="splitByChapters" (change)="splitByChaptersChanged()"
-                          [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                        <label class="form-check-label" for="checkbox-split-chapters">Split by chapters</label>
-                      </div>
-                    </div>
-                    @if (splitByChapters) {
-                    <div class="col">
-                      <div class="input-group">
-                        <span class="input-group-text help-title" ngbPopover="Output template for chapter files." triggers="click" autoClose="outside" container="body">Template</span>
-                        <input type="text" class="form-control" name="chapterTemplate" [(ngModel)]="chapterTemplate"
-                          (change)="chapterTemplateChanged()" [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                      </div>
-                    </div>
-                    }
-                  </div>
+                  </hlm-autocomplete-content>
+                </hlm-autocomplete-search>
+              </div>
+              <div class="col-span-12 md:col-span-6">
+                <hlm-input-group>
+                  <hlm-input-group-addon class="field-label"><app-help-label help="Add a prefix to downloaded filenames.">Custom Name Prefix</app-help-label></hlm-input-group-addon>
+                  <input hlmInputGroupInput type="text"
+                    placeholder="Default"
+                    name="customNamePrefix"
+                    [(ngModel)]="customNamePrefix"
+                    [disabled]="downloads.loading">
+                </hlm-input-group>
+              </div>
+              <div class="col-span-12">
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+                  <label for="checkbox-sponsorblock" class="flex items-center gap-2 text-sm" hlmTooltip="Cut out sponsor segments using SponsorBlock's crowd-sourced markers (YouTube only).">
+                    <hlm-switch inputId="checkbox-sponsorblock"
+                      name="sponsorblock" [(ngModel)]="sponsorblock" (ngModelChange)="sponsorblockChanged()"
+                      [disabled]="downloads.loading" />
+                    Remove sponsor segments
+                  </label>
+                  <label for="checkbox-split-chapters" class="flex items-center gap-2 text-sm">
+                    <hlm-switch inputId="checkbox-split-chapters"
+                      name="splitByChapters" [(ngModel)]="splitByChapters" (ngModelChange)="splitByChaptersChanged()"
+                      [disabled]="downloads.loading" />
+                    Split by chapters
+                  </label>
+                  @if (splitByChapters) {
+                    <hlm-input-group class="min-w-60 flex-1">
+                      <hlm-input-group-addon class="field-label"><app-help-label help="Output template for chapter files.">Template</app-help-label></hlm-input-group-addon>
+                      <input hlmInputGroupInput type="text" name="chapterTemplate" [(ngModel)]="chapterTemplate"
+                        (change)="chapterTemplateChanged()" [disabled]="downloads.loading">
+                    </hlm-input-group>
+                  }
                 </div>
-                @if (downloadType === 'video' || downloadType === 'audio') {
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Optional start time (seconds, M:SS, or H:MM:SS). Blank = from start or YouTube &t= in URL." triggers="click" autoClose="outside" container="body">Clip start</span>
-                    <input type="text"
-                      class="form-control"
+              </div>
+              @if (downloadType === 'video' || downloadType === 'audio') {
+                <div class="col-span-12 md:col-span-6">
+                  <hlm-input-group>
+                    <hlm-input-group-addon class="field-label"><app-help-label help="Optional start time (seconds, M:SS, or H:MM:SS). Blank = from start or YouTube &t= in URL.">Clip start</app-help-label></hlm-input-group-addon>
+                    <input hlmInputGroupInput type="text"
                       name="clipStart"
                       [(ngModel)]="clipStart"
                       (change)="clipStartChanged()"
                       placeholder="e.g. 2:26"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
+                      [disabled]="downloads.loading">
+                  </hlm-input-group>
                 </div>
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Optional end time. Blank = until end of media." triggers="click" autoClose="outside" container="body">Clip end</span>
-                    <input type="text"
-                      class="form-control"
+                <div class="col-span-12 md:col-span-6">
+                  <hlm-input-group>
+                    <hlm-input-group-addon class="field-label"><app-help-label help="Optional end time. Blank = until end of media.">Clip end</app-help-label></hlm-input-group-addon>
+                    <input hlmInputGroupInput type="text"
                       name="clipEnd"
                       [(ngModel)]="clipEnd"
                       (change)="clipEndChanged()"
                       placeholder="e.g. 3:24"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
+                      [disabled]="downloads.loading">
+                  </hlm-input-group>
                 </div>
-                }
-              </div>
+              }
+            </div>
 
-              <!-- Behavior -->
-              <div class="settings-section-label">Behavior</div>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Automatically start downloads when added." triggers="click" autoClose="outside" container="body">Auto Start</span>
-                    <select class="form-select"
-                      name="autoStart"
-                      [(ngModel)]="autoStart"
-                      (change)="autoStartChanged()"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                      <option [ngValue]="true">Yes</option>
-                      <option [ngValue]="false">No</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Maximum number of items to download from a playlist or channel (0 = no limit)." triggers="click" autoClose="outside" container="body">Items Limit</span>
-                    <input type="number"
-                      min="0"
-                      class="form-control"
-                      placeholder="Default"
-                      name="playlistItemLimit"
-                      (keydown)="digitsOnly($event)"
-                      [(ngModel)]="playlistItemLimit"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="How often to poll subscriptions for new videos." triggers="click" autoClose="outside" container="body">Subscription Check (min)</span>
-                    <input type="number"
-                      min="1"
-                      class="form-control"
-                      name="checkIntervalMinutes"
-                      (keydown)="digitsOnly($event)"
-                      [(ngModel)]="checkIntervalMinutes"
-                      (ngModelChange)="checkIntervalChanged()"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="In subscriptions, only titles matching this Python-style regex are queued. Empty = all. Case-sensitive; use (?i) in the pattern for case-insensitive." triggers="click" autoClose="outside" container="body">Subscription Title Filter</span>
-                    <input type="text"
-                      class="form-control"
-                      name="titleRegex"
-                      [(ngModel)]="titleRegex"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading"
-                      placeholder="Optional regex">
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="checkbox-skip-subscriber-only"
-                      name="skipSubscriberOnly" [(ngModel)]="skipSubscriberOnly"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading" />
-                    <label class="form-check-label" for="checkbox-skip-subscriber-only">
-                      <span class="help-title" tabindex="0" role="button"
-                        ngbPopover="When enabled, subscription checks skip videos marked members-only by yt-dlp (channel Join). Ignored for one-off downloads."
-                        triggers="click" autoClose="outside" container="body"
-                        (click)="$event.preventDefault(); $event.stopPropagation()"
-                        (keydown.enter)="$event.preventDefault(); $event.stopPropagation()"
-                        (keydown.space)="$event.preventDefault(); $event.stopPropagation()">Skip members-only subscription videos</span>
-                    </label>
-                  </div>
+            <!-- Behavior -->
+            <div class="settings-section-label">Behavior</div>
+            <div class="grid grid-cols-12 gap-4" data-settings-section="behavior">
+              <div class="col-span-12 md:col-span-6">
+                <hlm-input-group>
+                  <hlm-input-group-addon class="field-label"><app-help-label help="Automatically start downloads when added.">Auto Start</app-help-label></hlm-input-group-addon>
+                  <hlm-select class="field-select"
+                    name="autoStart"
+                    [itemToString]="autoStartText"
+                    [(ngModel)]="autoStart"
+                    (ngModelChange)="autoStartChanged()"
+                    [disabled]="downloads.loading">
+                    <hlm-select-trigger [class]="groupSelectClass"><hlm-select-value /></hlm-select-trigger>
+                    <hlm-select-content *hlmSelectPortal>
+                      <hlm-select-item [value]="true">Yes</hlm-select-item>
+                      <hlm-select-item [value]="false">No</hlm-select-item>
+                    </hlm-select-content>
+                  </hlm-select>
+                </hlm-input-group>
+              </div>
+              <div class="col-span-12 md:col-span-6">
+                <hlm-input-group>
+                  <hlm-input-group-addon class="field-label"><app-help-label help="Maximum number of items to download from a playlist or channel (0 = no limit).">Items Limit</app-help-label></hlm-input-group-addon>
+                  <input hlmInputGroupInput type="number"
+                    min="0"
+                    placeholder="Default"
+                    name="playlistItemLimit"
+                    (keydown)="digitsOnly($event)"
+                    [(ngModel)]="playlistItemLimit"
+                    [disabled]="downloads.loading">
+                </hlm-input-group>
+              </div>
+            </div>
+
+            <!-- yt-dlp -->
+            <div class="settings-section-label">yt-dlp</div>
+            <div class="grid grid-cols-12 gap-4" data-settings-section="ytdlp">
+              <div class="col-span-12 md:col-span-6">
+                <div class="border-input dark:bg-input/30 focus-within:border-ring focus-within:ring-ring/50 flex min-h-8 w-full items-stretch rounded-lg border transition-[color,box-shadow] focus-within:ring-3">
+                  <span class="field-label text-muted-foreground flex items-center ps-2 text-sm font-medium"><app-help-label help="Choose one or more yt-dlp option presets configured on the server (applied in order).">Option Presets</app-help-label></span>
+                  <hlm-combobox-multiple class="min-w-0 flex-1"
+                    name="ytdlOptionsPresets"
+                    [closeOnSelect]="false"
+                    [(ngModel)]="ytdlOptionsPresets"
+                    (ngModelChange)="ytdlOptionsPresetsChanged()"
+                    [disabled]="downloads.loading">
+                    <hlm-combobox-chips class="min-h-8 rounded-none border-0 bg-transparent shadow-none focus-within:ring-0 dark:bg-transparent">
+                      <ng-template hlmComboboxValues let-values>
+                        @for (value of values; track value) {
+                          <hlm-combobox-chip [value]="value">{{ value }}</hlm-combobox-chip>
+                        }
+                      </ng-template>
+                      <input hlmComboboxChipInput [placeholder]="ytdlOptionsPresets.length ? '' : 'Default'" aria-label="Option presets" />
+                    </hlm-combobox-chips>
+                    <hlm-combobox-content *hlmComboboxPortal>
+                      <hlm-combobox-empty>No presets configured.</hlm-combobox-empty>
+                      <div hlmComboboxList>
+                        @for (preset of ytdlOptionPresetNames; track preset) {
+                          <hlm-combobox-item [value]="preset">{{ preset }}</hlm-combobox-item>
+                        }
+                      </div>
+                    </hlm-combobox-content>
+                  </hlm-combobox-multiple>
                 </div>
               </div>
-
-              <!-- yt-dlp -->
-              <div class="settings-section-label">yt-dlp</div>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Choose one or more yt-dlp option presets configured on the server (applied in order)." triggers="click" autoClose="outside" container="body">Option Presets</span>
-                    <ng-select
-                      class="flex-grow-1"
-                      name="ytdlOptionsPresets"
-                      [items]="ytdlOptionPresetNames"
-                      [multiple]="true"
-                      [closeOnSelect]="false"
-                      placeholder="Default"
-                      [(ngModel)]="ytdlOptionsPresets"
-                      (ngModelChange)="ytdlOptionsPresetsChanged()"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="For password-protected videos (e.g. Vimeo). Not saved; cleared after adding. Ignored for subscriptions." triggers="click" autoClose="outside" container="body">Video Password</span>
-                    <input type="password"
-                      class="form-control"
-                      name="videoPassword"
-                      autocomplete="new-password"
-                      placeholder="Optional"
-                      [(ngModel)]="videoPassword"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
-                </div>
-                @if (allowYtdlOptionsOverrides()) {
-                <div class="col-12">
-                  <div class="input-group">
-                    <span class="input-group-text help-title" ngbPopover="Optional per-download yt-dlp overrides as a JSON object." triggers="click" autoClose="outside" container="body">Custom yt-dlp Options</span>
-                    <input type="text"
-                      class="form-control"
+              <div class="col-span-12 md:col-span-6">
+                <hlm-input-group>
+                  <hlm-input-group-addon class="field-label"><app-help-label help="For password-protected videos (e.g. Vimeo). Not saved; cleared after adding. Ignored for subscriptions.">Video Password</app-help-label></hlm-input-group-addon>
+                  <input hlmInputGroupInput type="password"
+                    name="videoPassword"
+                    autocomplete="new-password"
+                    placeholder="Optional"
+                    [(ngModel)]="videoPassword"
+                    [disabled]="downloads.loading">
+                </hlm-input-group>
+              </div>
+              @if (allowYtdlOptionsOverrides()) {
+                <div class="col-span-12">
+                  <hlm-input-group>
+                    <hlm-input-group-addon class="field-label"><app-help-label help="Optional per-download yt-dlp overrides as a JSON object.">Custom yt-dlp Options</app-help-label></hlm-input-group-addon>
+                    <input hlmInputGroupInput type="text"
                       placeholder='e.g. {"writesubtitles": true}'
                       name="ytdlOptionsOverrides"
                       [(ngModel)]="ytdlOptionsOverrides"
                       (change)="ytdlOptionsOverridesChanged()"
-                      [disabled]="addInProgress || subscribeInProgress || downloads.loading">
-                  </div>
+                      [disabled]="downloads.loading">
+                  </hlm-input-group>
                 </div>
-                }
-              </div>
+              }
+            </div>
 
-              <!-- Tools -->
-              <div class="settings-section-label">Tools</div>
-              <div class="row g-3">
-                <div class="col-md-4">
-                  <div class="action-group-label help-title" ngbPopover="Upload a cookies.txt file from your browser to authenticate restricted or private downloads." triggers="click" autoClose="outside" container="body">Cookies</div>
-                  <input type="file" id="cookie-upload" class="d-none" accept=".txt"
-                    (change)="onCookieFileSelect($event)"
-                    [disabled]="cookieUploadInProgress || addInProgress">
-                  <div class="btn-group w-100" role="group">
-                    <label class="btn mb-0"
-                      [class]="hasCookies ? 'btn cookie-active-btn mb-0' : 'btn cookie-btn mb-0'"
-                      [class.disabled]="cookieUploadInProgress || addInProgress"
-                      for="cookie-upload">
-                      @if (cookieUploadInProgress) {
-                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                      } @else {
-                        <fa-icon [icon]="faUpload" class="me-2" />
-                      }
-                      {{ hasCookies ? 'Replace Cookies' : 'Upload Cookies' }}
-                    </label>
-                    @if (hasCookies) {
-                      <button type="button" class="btn btn-outline-danger"
-                        (click)="deleteCookies()"
-                        [disabled]="cookieUploadInProgress || addInProgress"
-                        ngbTooltip="Remove uploaded cookies">
-                        <fa-icon [icon]="faTrashAlt" />
-                      </button>
-                    }
-                  </div>
-                  <div class="cookie-status" [class.active]="hasCookies">
-                    @if (hasCookies) {
-                      <fa-icon [icon]="faCheckCircle" class="me-1" />
-                      Cookies active
+            <!-- Tools -->
+            <div class="settings-section-label">Tools</div>
+            <div class="grid grid-cols-12 gap-4">
+              <div class="col-span-12 md:col-span-4">
+                <div class="action-group-label"><app-help-label help="Upload a cookies.txt file from your browser to authenticate restricted or private downloads.">Cookies</app-help-label></div>
+                <input #cookieInput type="file" id="cookie-upload" class="hidden" accept=".txt"
+                  (change)="onCookieFileSelect($event)"
+                  [disabled]="cookieUploadInProgress || addInProgress">
+                <div class="flex" role="group">
+                  <button type="button" hlmBtn [variant]="hasCookies ? 'outline' : 'secondary'"
+                    class="flex-1"
+                    [class.rounded-e-none]="hasCookies"
+                    [class.border-success/50]="hasCookies"
+                    [class.text-success]="hasCookies"
+                    [disabled]="cookieUploadInProgress || addInProgress"
+                    (click)="cookieInput.click()">
+                    @if (cookieUploadInProgress) {
+                      <hlm-spinner class="text-sm" />
                     } @else {
-                      No cookies configured
+                      <fa-icon [icon]="faUpload" />
                     }
-                  </div>
+                    {{ hasCookies ? 'Replace Cookies' : 'Upload Cookies' }}
+                  </button>
+                  @if (hasCookies) {
+                    <button type="button" hlmBtn variant="destructive" class="rounded-s-none"
+                      (click)="deleteCookies()"
+                      [disabled]="cookieUploadInProgress || addInProgress"
+                      data-tooltip="Remove cookies"
+                      aria-label="Remove uploaded cookies">
+                      <fa-icon [icon]="faTrashAlt" />
+                    </button>
+                  }
                 </div>
-                <div class="col-md-8">
-                  <div class="action-group-label">Bulk Actions</div>
-                  <div class="row g-2">
-                    <div class="col-4">
-                      <button type="button"
-                        class="btn btn-secondary w-100"
-                        (click)="openBatchImportModal()">
-                        <fa-icon [icon]="faFileImport" class="me-2" />
-                        Import URLs
-                      </button>
-                    </div>
-                    <div class="col-4">
-                      <button type="button"
-                        class="btn btn-secondary w-100"
-                        (click)="exportBatchUrls('all')">
-                        <fa-icon [icon]="faFileExport" class="me-2" />
-                        Export URLs
-                      </button>
-                    </div>
-                    <div class="col-4">
-                      <button type="button"
-                        class="btn btn-secondary w-100"
-                        (click)="copyBatchUrls('all')">
-                        <fa-icon [icon]="faCopy" class="me-2" />
-                        Copy URLs
-                      </button>
-                    </div>
-                  </div>
+                <div class="mt-1.5 text-xs" [class.text-success]="hasCookies" [class.text-muted-foreground]="!hasCookies">
+                  @if (hasCookies) {
+                    <fa-icon [icon]="faCheckCircle" class="me-1" />
+                    Cookies active
+                  } @else {
+                    No cookies configured
+                  }
+                </div>
+              </div>
+              <div class="col-span-12 md:col-span-8">
+                <div class="action-group-label">Bulk Actions</div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" hlmBtn variant="secondary" (click)="openBatchImportModal()">
+                    <fa-icon [icon]="faFileImport" />
+                    Import URLs
+                  </button>
+                  <button type="button" hlmBtn variant="secondary" (click)="exportBatchUrls('all')">
+                    <fa-icon [icon]="faFileExport" />
+                    Export URLs
+                  </button>
+                  <button type="button" hlmBtn variant="secondary" (click)="copyBatchUrls('all')">
+                    <fa-icon [icon]="faCopy" />
+                    Copy URLs
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </hlm-collapsible-content>
+      </hlm-collapsible>
     </div>
   </form>
 
+  <!-- Playlist browser: open while a playlist is being browsed. -->
+  <hlm-dialog
+    [state]="browsePayload ? 'open' : 'closed'"
+    (closed)="closeBrowse()">
+    <hlm-dialog-content *hlmDialogPortal="let ctx" class="w-[48rem] max-w-[calc(100vw-2rem)] sm:max-w-[48rem]">
+      @if (browsePayload; as payload) {
+        <app-playlist-browser [payload]="payload" (picked)="queueBrowsedEntries($event)" (canceled)="closeBrowse()" />
+      }
+    </hlm-dialog-content>
+  </hlm-dialog>
+
+  <!-- Batch Import Dialog -->
+  <hlm-dialog
+    [state]="batchImportModalOpen ? 'open' : 'closed'"
+    [disableClose]="importInProgress"
+    (closed)="closeBatchImportModal()">
+    <hlm-dialog-content *hlmDialogPortal="let ctx" class="w-[32rem] max-w-[calc(100vw-2rem)] sm:max-w-[32rem]" [showCloseButton]="!importInProgress">
+      <hlm-dialog-header>
+        <h3 hlmDialogTitle>Batch Import URLs</h3>
+        <p hlmDialogDescription>Paste one video URL per line.</p>
+      </hlm-dialog-header>
+      <textarea hlmTextarea id="batch-import-textarea" [(ngModel)]="batchImportText" rows="6"
+        class="min-h-32 resize-y"
+        aria-label="URLs to import"
+        placeholder="Paste one video URL per line"></textarea>
+      @if (batchImportStatus || batchImportTotal > 0) {
+        <div class="flex flex-col gap-2">
+          @if (batchImportStatus) {
+            <small class="text-muted-foreground">{{ batchImportStatus }}</small>
+          }
+          @if (batchImportTotal > 0) {
+            <div class="relative">
+              <hlm-progress class="h-5 rounded-md" [value]="(batchImportCount / batchImportTotal) * 100"
+                [attr.aria-label]="batchImportCount + ' of ' + batchImportTotal + ' imported'">
+                <hlm-progress-indicator [class.bg-destructive]="batchImportFailures > 0" />
+              </hlm-progress>
+              <span class="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                {{ batchImportCount }} / {{ batchImportTotal }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+      <hlm-dialog-footer>
+        @if (importInProgress) {
+          <button type="button" hlmBtn variant="destructive" class="sm:me-auto" (click)="cancelBatchImport()">
+            Cancel Import
+          </button>
+        }
+        <button type="button" hlmBtn variant="outline" (click)="closeBatchImportModal()">Close</button>
+        <button type="button" hlmBtn (click)="startBatchImport()" [disabled]="importInProgress">
+          Import URLs
+        </button>
+      </hlm-dialog-footer>
+    </hlm-dialog-content>
+  </hlm-dialog>
+
+
   @if (downloads.loading) {
-    <div class="alert alert-info" role="alert">
-      Connecting to server...
+    <div hlmAlert class="mb-4">
+      <div hlmAlertDescription>Connecting to server...</div>
     </div>
   }
-  <app-downloading-section />
+  <div #listViews class="list-views" role="group" aria-label="Show">
+    <button type="button" class="list-pill" [attr.aria-pressed]="listView === 'downloading'" (click)="setListView('downloading')">
+      Downloading
+      <span class="list-pill-count">{{ downloads.queue.size }}</span>
+    </button>
+    <button type="button" class="list-pill" [attr.aria-pressed]="listView === 'completed'" (click)="setListView('completed')">
+      Completed
+      <span class="list-pill-count">{{ downloads.done.size - failedDownloads }}</span>
+    </button>
+    @if (failedDownloads > 0 || listView === 'failed') {
+      <button type="button" class="list-pill list-pill-failed" [attr.aria-pressed]="listView === 'failed'" (click)="setListView('failed')">
+        Failed
+        <span class="list-pill-count">{{ failedDownloads }}</span>
+      </button>
+    }
+    <button type="button" class="list-pill" [attr.aria-pressed]="listView === 'subscriptions'" (click)="setListView('subscriptions')">
+      Subscriptions
+      <span class="list-pill-count">{{ cachedSubs.length }}</span>
+    </button>
+  </div>
 
-  <app-completed-section />
+  @if (pendingSubscription) {
+    <p class="text-muted-foreground mb-3 flex items-center gap-2 text-sm" role="status">
+      <hlm-spinner class="shrink-0 text-sm" />
+      <span class="min-w-0">Subscribing to <span class="text-foreground break-all">{{ pendingSubscription.url }}</span>. Reading a large channel can take a minute.
+        <span class="tabular-nums" aria-hidden="true">({{ subscribeElapsed }} s)</span></span>
+    </p>
+  }
 
-  <app-subscriptions-section />
+  @if (listView === 'downloading') {
+    @if (downloads.queue.size > 0) {
+      <div class="section-toolbar">
+        <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="queueSelectedCount === 0" (click)="delSelectedDownloads('queue')"><fa-icon [icon]="faTrashAlt" /> Cancel selected</button>
+        <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="queueSelectedCount === 0" (click)="startSelectedDownloads('queue')"><fa-icon [icon]="faDownload" /> Download selected</button>
+        <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="pendingDownloads === 0" (click)="startAllPending()"><fa-icon [icon]="faPlay" /> Start all{{ pendingDownloads > 0 ? ' (' + pendingDownloads + ')' : '' }}</button>
+      </div>
+      <div hlmTableContainer>
+        <table hlmTable class="tabular-nums">
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh class="w-4">
+                <app-select-all-checkbox #queueMasterCheckboxRef [id]="'queue'" [list]="downloads.queue" (changed)="queueSelectionChanged($event)" />
+              </th>
+              <th hlmTh>Video</th>
+              <th hlmTh class="w-28">Format</th>
+              <th hlmTh class="w-32">Speed</th>
+              <th hlmTh class="w-28">ETA</th>
+              <th hlmTh class="w-32"></th>
+            </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (download of downloads.queue | keyvalue: asIsOrder; track download.key) {
+              <tr class="hover:bg-muted/50 border-b transition-colors" app-download-row
+                [class.queue-row-enter]="enteringQueueIds.has(download.key)"
+                [class.opacity-50]="download.value.deleting"
+                [class.pointer-events-none]="download.value.deleting"
+                [id]="download.key"
+                [download]="download.value"
+                [types]="downloadTypes"
+                [master]="queueMasterCheckboxRef"
+                [checked]="!!download.value.checked"
+                [deleting]="!!download.value.deleting"
+                [now]="now"
+                (start)="downloadItemByKey($event)"
+                (remove)="delDownload('queue', $event)"></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (!downloads.loading) {
+      <div class="section-empty">
+        <fa-icon [icon]="faDownload" class="section-empty-icon" />
+        <p class="font-medium">Nothing downloading</p>
+        <p class="text-muted-foreground text-sm">Paste a video, playlist or channel link above to download it.</p>
+      </div>
+    }
+  } @else if (listView === 'completed' || listView === 'failed') {
+    @if (cachedSortedDone.length > 0) {
+      <div class="section-toolbar">
+        <button type="button" hlmBtn variant="ghost" size="sm" (click)="toggleSortOrder()"><fa-icon [icon]="sortAscending ? faSortAmountUp : faSortAmountDown" /> {{ sortAscending ? 'Oldest first' : 'Newest first' }}</button>
+        <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="doneSelectedCount === 0" (click)="delSelectedDownloads('done')"><fa-icon [icon]="faTrashAlt" /> Clear selected</button>
+        @if (listView === 'failed') {
+          <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="!hasFailedDone" (click)="clearFailedDownloads()"><fa-icon [icon]="faTimesCircle" /> Clear failed</button>
+          <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="!hasFailedDone" (click)="retryFailedDownloads()"><fa-icon [icon]="faRedoAlt" /> Retry failed</button>
+        } @else {
+          <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="!hasCompletedDone" (click)="clearCompletedDownloads()"><fa-icon [icon]="faCheckCircle" /> Clear completed</button>
+          <button type="button" hlmBtn variant="ghost" size="sm" [disabled]="doneSelectedCount === 0" (click)="downloadSelectedFiles()"><fa-icon [icon]="faDownload" /> Download selected</button>
+        }
+      </div>
+      <div hlmTableContainer>
+        <table hlmTable class="tabular-nums">
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh class="w-4">
+                <app-select-all-checkbox #doneMasterCheckboxRef [id]="'done'" [list]="cachedVisibleDone" [orderedIds]="cachedSortedDoneIds" (changed)="doneSelectionChanged($event)" />
+              </th>
+              <th hlmTh>Video</th>
+              <th hlmTh>Type</th>
+              <th hlmTh>Quality</th>
+              <th hlmTh>Codec / Format</th>
+              <th hlmTh>File Size</th>
+              <th hlmTh>Downloaded</th>
+              <th hlmTh class="w-40"></th>
+            </tr>
+          </thead>
+          @for (entry of cachedSortedDone; track entry[0]) {
+            <tbody app-done-entry
+              [id]="entry[0]"
+              [download]="entry[1]"
+              [types]="downloadTypes"
+              [master]="doneMasterCheckboxRef"
+              [config]="downloads.configuration"
+              [checked]="!!entry[1].checked"
+              [deleting]="!!entry[1].deleting"
+              [errorExpanded]="isErrorExpanded(entry[0])"
+              [copied]="lastCopiedErrorId === entry[0]"
+              [canShare]="canShare"
+              (retry)="retryDownload($event, entry[1])"
+              (remove)="delDownload('done', $event)"
+              (share)="shareDownload(entry[1])"
+              (toggleError)="toggleErrorDetail($event)"
+              (copyError)="copyErrorMessage($event, entry[1])"></tbody>
+          }
+        </table>
+      </div>
+    } @else if (!downloads.loading) {
+      @if (listView === 'failed') {
+        <div class="section-empty">
+          <fa-icon [icon]="faTimesCircle" class="section-empty-icon" />
+          <p class="font-medium">No failed downloads</p>
+          <p class="text-muted-foreground text-sm">Downloads that fail are listed here with their error, ready to retry.</p>
+        </div>
+      } @else {
+        <div class="section-empty">
+          <fa-icon [icon]="faCheckCircle" class="section-empty-icon" />
+          <p class="font-medium">No finished downloads yet</p>
+          <p class="text-muted-foreground text-sm">Finished downloads are listed here, with links to their files.</p>
+        </div>
+      }
+    }
+  } @else {
+    @if (cachedSubs.length > 0) {
+      <div class="section-toolbar">
+        @if (checkingAllSubscriptions) {
+          <button type="button" hlmBtn variant="ghost" size="sm" disabled>
+            <hlm-spinner class="text-sm" />Check all now
+          </button>
+        } @else {
+          <button type="button" hlmBtn variant="ghost" size="sm"
+            (click)="checkAllSubscriptions()"
+            [disabled]="downloads.loading || cachedSubs.length === 0 || checkingSelectedSubscriptions">
+            <fa-icon [icon]="faRedoAlt" /> Check all now
+          </button>
+        }
+        @if (checkingSelectedSubscriptions) {
+          <button type="button" hlmBtn variant="ghost" size="sm" disabled>
+            <hlm-spinner class="text-sm" />Check selected
+          </button>
+        } @else {
+          <button type="button" hlmBtn variant="ghost" size="sm"
+            (click)="checkSelectedSubscriptions()"
+            [disabled]="downloads.loading || selectedSubscriptionIds.size === 0 || checkingAllSubscriptions">
+            <fa-icon [icon]="faRedoAlt" /> Check selected
+          </button>
+        }
+        <button type="button" hlmBtn variant="ghost" size="sm"
+          (click)="deleteSelectedSubscriptions()"
+          [disabled]="downloads.loading || selectedSubscriptionIds.size === 0">
+          <fa-icon [icon]="faTrashAlt" /> Delete selected
+        </button>
+      </div>
+      <div hlmTableContainer>
+        <table hlmTable class="tabular-nums">
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh class="w-4">
+                <hlm-checkbox
+                  [checked]="allSubsSelected()"
+                  (checkedChange)="toggleSubMaster($event)"
+                  [disabled]="downloads.loading || cachedSubs.length === 0"
+                  aria-label="Select all subscriptions" />
+              </th>
+              <th hlmTh>Name</th>
+              <th hlmTh>URL</th>
+              <th hlmTh><app-help-label help="Subscriptions only — which new video titles to queue when this feed is checked. Does not affect manual downloads.">Filter</app-help-label></th>
+              <th hlmTh>Interval (min)</th>
+              <th hlmTh>Last checked</th>
+              <th hlmTh>Status</th>
+              <th hlmTh class="w-32"></th>
+            </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (entry of cachedSubs; track entry[0]) {
+              <tr hlmTr>
+                <td hlmTd>
+                  <hlm-checkbox
+                    [checked]="isSubSelected(entry[0])"
+                    (checkedChange)="toggleSubSelected(entry[0])"
+                    [disabled]="downloads.loading"
+                    [aria-label]="'Select subscription ' + entry[1].name" />
+                </td>
+                <td hlmTd class="min-w-40 whitespace-normal">
+                  @if (editingNameId === entry[0]) {
+                    <div class="flex flex-wrap items-center gap-1">
+                      <input hlmInput type="text"
+                        class="h-7 min-w-32 flex-1"
+                        [name]="'subName' + entry[0]"
+                        [(ngModel)]="nameEditDraft"
+                        [maxlength]="subscriptionNameMaxLength"
+                        [disabled]="downloads.loading"
+                        [attr.aria-label]="'Subscription name for ' + entry[1].name" />
+                      <button type="button" hlmBtn variant="outline" size="sm"
+                        (click)="saveName(entry[0])"
+                        [disabled]="downloads.loading">Save</button>
+                      <button type="button" hlmBtn variant="outline" size="sm"
+                        (click)="cancelEditName()"
+                        [disabled]="downloads.loading">Cancel</button>
+                    </div>
+                  } @else {
+                    <div class="flex flex-wrap items-center gap-1">
+                      <span class="break-words">{{ entry[1].name }}</span>
+                      <button type="button" hlmBtn variant="link" size="xs"
+                        (click)="beginEditName(entry[0], entry[1].name)"
+                        [disabled]="downloads.loading"
+                        hlmTooltip="Rename this subscription (display name only; does not affect the download folder)">Edit</button>
+                    </div>
+                  }
+                </td>
+                <td hlmTd class="max-w-80 min-w-48"><a class="text-link block truncate" [href]="entry[1].url" target="_blank" rel="noopener" [attr.data-tooltip]="entry[1].url">{{ entry[1].url }}</a></td>
+                <td hlmTd class="whitespace-normal">
+                  @if (editingTitleRegexId === entry[0]) {
+                    <div class="flex flex-wrap items-center gap-1">
+                      <input hlmInput type="text"
+                        class="h-7 min-w-32 flex-1"
+                        [name]="'subTitleRegex' + entry[0]"
+                        [(ngModel)]="titleRegexEditDraft"
+                        [disabled]="downloads.loading"
+                        [attr.aria-label]="'Title filter for ' + entry[1].name" />
+                      <button type="button" hlmBtn variant="outline" size="sm"
+                        (click)="saveTitleRegex(entry[0])"
+                        [disabled]="downloads.loading">Save</button>
+                      <button type="button" hlmBtn variant="outline" size="sm"
+                        (click)="cancelEditTitleRegex()"
+                        [disabled]="downloads.loading">Cancel</button>
+                    </div>
+                  } @else {
+                    <div class="flex flex-wrap items-center gap-1">
+                      <span class="text-muted-foreground break-all text-xs">{{ entry[1].title_regex || '—' }}</span>
+                      <button type="button" hlmBtn variant="link" size="xs"
+                        (click)="beginEditTitleRegex(entry[0], entry[1].title_regex)"
+                        [disabled]="downloads.loading"
+                        hlmTooltip="Edit subscription title filter (subscriptions only; not for one-off downloads)">Edit</button>
+                    </div>
+                  }
+                </td>
+                <td hlmTd>{{ entry[1].check_interval_minutes }}</td>
+                <td hlmTd>
+                  @if (entry[1].last_checked !== null) {
+                    <span>{{ entry[1].last_checked! * 1000 | date:'yyyy-MM-dd HH:mm:ss' }}</span>
+                  } @else {
+                    <span class="text-muted-foreground">—</span>
+                  }
+                </td>
+                <td hlmTd class="whitespace-normal">
+                  @if (entry[1].error) {
+                    <span class="text-destructive text-xs">{{ entry[1].error }}</span>
+                  } @else if (entry[1].enabled) {
+                    <span class="text-success">Active</span>
+                  } @else {
+                    <span class="text-muted-foreground">Paused</span>
+                  }
+                </td>
+                <td hlmTd>
+                  <div class="flex justify-end gap-1">
+                    @if (isSubscriptionChecking(entry[0])) {
+                      <span class="inline-flex" data-tooltip="Checking now">
+                        <button type="button" hlmBtn variant="ghost" size="icon-sm"
+                          disabled
+                          [attr.aria-label]="'Checking ' + entry[1].name">
+                          <hlm-spinner class="text-sm" />
+                        </button>
+                      </span>
+                    } @else {
+                      <button type="button" hlmBtn variant="ghost" size="icon-sm"
+                        (click)="checkSubscriptionNow(entry[0])"
+                        [disabled]="downloads.loading"
+                        [attr.aria-label]="'Check now ' + entry[1].name"
+                        data-tooltip="Check now">
+                        <fa-icon [icon]="faRedoAlt" />
+                      </button>
+                    }
+                    <button type="button" hlmBtn variant="ghost" size="icon-sm"
+                      (click)="toggleSubscriptionEnabled(entry[1])"
+                      [disabled]="downloads.loading"
+                      [attr.aria-label]="(entry[1].enabled ? 'Pause ' : 'Resume ') + entry[1].name"
+                      [attr.data-tooltip]="entry[1].enabled ? 'Pause' : 'Resume'">
+                      @if (entry[1].enabled) {
+                        <fa-icon [icon]="faPause" />
+                      } @else {
+                        <fa-icon [icon]="faPlay" />
+                      }
+                    </button>
+                    <button type="button" hlmBtn variant="ghost" size="icon-sm" class="text-destructive"
+                      (click)="deleteSubscription(entry[0])"
+                      [disabled]="downloads.loading"
+                      [attr.aria-label]="'Delete subscription ' + entry[1].name"
+                      data-tooltip="Delete subscription">
+                      <fa-icon [icon]="faTrashAlt" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (!downloads.loading) {
+      <div class="section-empty">
+        <fa-icon [icon]="faRss" class="section-empty-icon" />
+        <p class="font-medium">No subscriptions</p>
+        <p class="text-muted-foreground text-sm">Subscribe to a channel or playlist and MeTube downloads new uploads as they appear.</p>
+        <button type="button" hlmBtn variant="outline" size="sm" class="mt-3" (click)="startSubscribing()">
+          <fa-icon [icon]="faRss" /> Subscribe to a channel or playlist
+        </button>
+      </div>
+    }
+  }
+  </div>
 </main><!-- /.container -->
 
-<footer class="footer navbar-dark bg-dark py-3 mt-5">
-  <div class="container text-center">
+<footer class="footer mt-12 bg-zinc-900 py-3 text-zinc-50 dark:bg-zinc-950">
+  <div class="mx-auto px-3 text-center">
     @if (ytDlpVersion && metubeVersion) {
       <div class="footer-content">
         <div class="version-item">
@@ -638,7 +1081,7 @@
         @if (ytDlpOptionsUpdateTime) {
           <div class="version-separator"></div>
         }
-        <a href="https://github.com/alexta69/metube" target="_blank" class="github-link">
+        <a href="https://github.com/alexta69/metube" target="_blank" rel="noopener" class="github-link">
           <fa-icon [icon]="faGithub" />
           <span>GitHub</span>
         </a>
@@ -648,3 +1091,4 @@
 </footer>
 
 <app-toast-container />
+<app-tooltip-layer />
