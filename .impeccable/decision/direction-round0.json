@@ -1,0 +1,130 @@
+{
+  "title": "Choose the visual world for MeTube",
+  "question": "The roll assigned the Contact Sheet. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Contact Sheet",
+      "kicker": "THE ROLL",
+      "lineage": "darkroom contact sheets, film edge printing and china-marker proofing",
+      "thesis": "Every download is a strip of film printed onto one proof sheet, developing in the tray and then marked up in grease pencil.",
+      "palette": ["#f3f3f0", "#151515", "#f0a23b", "#d8342a", "#8a8a84"],
+      "materials": ["film rebate with sprocket holes", "amber edge printing", "red china marker", "proof paper"],
+      "viewport": "A black film rebate for a navbar with the live counts as amber edge-print, the URL bar as the one bright exposure, and the Downloading, Completed and Subscriptions sections as strips with frame-numbered edges.",
+      "risk": "Film furniture turns into costume if the sprockets and edge print ever outweigh the rows; it has to stay a quiet rebate beside dense data.",
+      "raised": [
+        { "from": "challenger-saville", "raise": "Every download carries a stable frame number in its rebate: the index you scan and select by." },
+        { "from": "challenger-depot", "raise": "State lives in the strip itself: unexposed while queued, latent while developing, light-struck red when it failed; badges only confirm it." },
+        { "from": "challenger-miura", "raise": "A collapsed section folds to one packet strip that still reports its counts and the live progress." },
+        { "from": "challenger-rain", "raise": "One exposure legend, used identically in the navbar, the section edges and the rows." }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Dubbing Deck",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "1980s double-cassette dubbing decks and reel-to-reel recorders",
+      "thesis": "MeTube as the recorder on the rack: the URL bar is the source, each download a tape in the transport with a tape counter and VU progress.",
+      "palette": ["#1a1b1d", "#c9ccd1", "#ffb000", "#e0322b", "#3b3e44"],
+      "materials": ["brushed aluminium faceplate", "amber LCD counters", "red REC lamp", "J-card labels"],
+      "viewport": "A faceplate strip holding the URL input and a lit REC-style Download key, with transports for active downloads and the history as a shelf of labelled tapes.",
+      "risk": "The most familiar retro-audio skeuomorph there is; a faceplate is a desk object and loses its logic on a phone."
+    },
+    {
+      "id": "challenger-oscilloscope",
+      "label": "Signal Bench",
+      "verdict": "competitive",
+      "lineage": "CRT oscilloscopes on an electronics bench",
+      "thesis": "Every active download is a channel on the scope: its real throughput drawn as a trace, speed and ETA on seven-segment readouts.",
+      "palette": ["#101317", "#39ff14", "#00aa66", "#8a8f98", "#ffb000", "#ff5a00"],
+      "materials": ["etched graticule", "phosphor trace", "matte instrument panel"],
+      "viewport": "A graticule band where each running download traces its speed live, readouts beside it, and the history as a measured log beneath.",
+      "case": "Wins on audience: homelab owners read instruments daily and the trace is real data. Loses on clarity for a 2,000-row history, and near-black with neon is the look this category's generated UIs default to.",
+      "risk": "Light mode has no native form; phosphor on black cannot carry the light theme you require.",
+      "hero": "https://impeccable.style/worlds/cards/scientific-notation-oscilloscope-signal-bench-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/scientific-notation-oscilloscope-signal-bench.webp"
+    },
+    {
+      "id": "challenger-annual",
+      "label": "Annual Plate Section",
+      "verdict": "competitive",
+      "lineage": "design annuals printed on uncoated stock",
+      "thesis": "The downloads as a printed plate section: a strict hairline grid, one grotesque, mono labels and registration marks at every corner.",
+      "palette": ["#f5f4f6", "#16181a", "#dcddf3", "#c9c7c4"],
+      "materials": ["uncoated stock", "1px hairlines", "registration crosshairs", "letterpress seal"],
+      "viewport": "A sticky mono token bar, the URL field as a plate caption, and the tables as a hairline-ruled plate index.",
+      "case": "Wins on clarity: hairline grids are ideal for dense tables. Loses on audience: a self-hoster has never held a design annual.",
+      "risk": "So restrained it can read as the neutral admin look you already have.",
+      "hero": "https://impeccable.style/worlds/cards/design-annual-s-plate-section-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/design-annual-s-plate-section.webp"
+    },
+    {
+      "id": "challenger-depot",
+      "label": "Depot Destination Blind",
+      "verdict": "declined",
+      "lineage": "bus-depot destination blinds",
+      "thesis": "Status as cloth courses stepping under a fixed window.",
+      "palette": ["#0e3a2e", "#ffd200", "#f2efe6"],
+      "materials": ["dyed duck cloth", "chrome-yellow legends"],
+      "viewport": "Each download a course stepping through its states.",
+      "case": "One-size condensed caps cannot carry thousands of long titles, and the audience has no tie to depot blinds.",
+      "kept": "State carried by the material itself, not only a label.",
+      "risk": "Reads as a themed poster rather than a tool.",
+      "hero": "https://impeccable.style/worlds/cards/operate-c-depot-blind-courses-hero.webp"
+    },
+    {
+      "id": "challenger-saville",
+      "label": "Factory Catalog Sleeve",
+      "verdict": "declined",
+      "lineage": "Factory Records catalog numbering",
+      "thesis": "Every artifact given a catalog number, state spoken in colour code.",
+      "palette": ["#0b0b0b", "#ffffff", "#e63946"],
+      "materials": ["matte black sleeve", "white hairline plot"],
+      "viewport": "A catalog index navigated by number.",
+      "case": "Coding state instead of labelling it breaks the at-a-glance principle.",
+      "kept": "A stable sequential number as each item's identity.",
+      "risk": "Unreadable without the legend.",
+      "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp"
+    },
+    {
+      "id": "challenger-miura",
+      "label": "Miura-fold Sheet",
+      "verdict": "declined",
+      "lineage": "deployable Miura-ori folds",
+      "thesis": "A packet that unfolds into a full sheet.",
+      "palette": ["#ffffff", "#c9a227", "#1a1a1a"],
+      "materials": ["scored sheet", "gold foil packet"],
+      "viewport": "Sections as packets that deploy.",
+      "case": "No tie to the audience and no gain in clarity.",
+      "kept": "Every section has a compact packet form and a deployed form.",
+      "risk": "Geometry for its own sake.",
+      "hero": "https://impeccable.style/worlds/cards/paper-folds-pleats-deployable-miura-orbit-sheet-hero.webp"
+    },
+    {
+      "id": "challenger-rain",
+      "label": "Gravity-rain Garden",
+      "verdict": "declined",
+      "lineage": "surreal impossible worlds",
+      "thesis": "Colour-coded rain falling toward its own gravity.",
+      "palette": ["#5b6b63", "#3a6ea5", "#c0392b"],
+      "materials": ["dusk garden", "coloured rain"],
+      "viewport": "A garden of falling drops.",
+      "case": "Loses on both axes for a download manager.",
+      "kept": "One legend held level while everything else moves.",
+      "risk": "Pure spectacle.",
+      "hero": "https://impeccable.style/worlds/cards/dream-surreal-impossible-worlds-gravity-rain-garden-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code", "toggle": false },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "The self-hosted app UI played straight, the way Sonarr, Jellyfin or qBittorrent's newer skins look, at full craft.",
+    "palette": ["#ffffff", "#0f172a", "#64748b", "#2563eb"],
+    "materials": ["neutral surfaces", "rounded controls", "one blue accent"],
+    "viewport": "The page you have now, refined: neutral surfaces, a blue primary, clean dense tables.",
+    "risk": "Indistinguishable from every other self-hosted app, by design."
+  },
+  "steer": true
+}

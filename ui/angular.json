@@ -29,16 +29,13 @@
               "src/custom-service-worker.js"
             ],
             "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/@ng-select/ng-select/themes/default.theme.css",
-              "src/styles.sass"
+              "src/styles.css"
             ],
             "scripts": [],
             "serviceWorker": "ngsw-config.json",
             "browser": "src/main.ts",
             "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
+              "zone.js"
             ]
           },
           "configurations": {

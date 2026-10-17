@@ -1398,6 +1398,44 @@ class PersistentQueue:
         # process exits; there is at most one, and it is the newest state.
         self._store_executor.shutdown(wait=True)
 
+# The most downloads the Settings page may allow at once, unless
+# MAX_CONCURRENT_DOWNLOADS itself is set higher. It also sizes the download
+# thread pool, which only starts threads as downloads need them.
+CONCURRENCY_CEILING = 20
+
+
+def concurrency_ceiling(config) -> int:
+    return max(CONCURRENCY_CEILING, int(config.MAX_CONCURRENT_DOWNLOADS))
+
+
+class _ConcurrencyLimiter:
+    """A semaphore whose limit can change while downloads hold it.
+
+    Lowering the limit never interrupts a running download: the extra ones
+    finish, and nothing new starts until the count is under the new limit.
+    """
+
+    def __init__(self, limit: int):
+        self.limit = limit
+        self._active = 0
+        self._cond = asyncio.Condition()
+
+    async def set_limit(self, limit: int) -> None:
+        async with self._cond:
+            self.limit = limit
+            self._cond.notify_all()
+
+    async def __aenter__(self):
+        async with self._cond:
+            await self._cond.wait_for(lambda: self._active < self.limit)
+            self._active += 1
+
+    async def __aexit__(self, *exc):
+        async with self._cond:
+            self._active -= 1
+            self._cond.notify_all()
+
+
 class DownloadQueue:
     def __init__(self, config, notifier):
         self.config = config
@@ -1406,12 +1444,12 @@ class DownloadQueue:
         self.done = PersistentQueue("completed", self.config.STATE_DIR + '/completed')
         self.pending = PersistentQueue("pending", self.config.STATE_DIR + '/pending')
         self.active_downloads = set()
-        self.semaphore = asyncio.Semaphore(self.config.MAX_CONCURRENT_DOWNLOADS)
+        self.semaphore = _ConcurrencyLimiter(int(self.config.MAX_CONCURRENT_DOWNLOADS))
         # Each active download parks two threads for its whole duration
         # (proc.join + status_queue.get). A dedicated pool keeps those from
         # starving the default executor, which extract_info/live-probes also use.
         self._download_executor = ThreadPoolExecutor(
-            max_workers=2 * self.config.MAX_CONCURRENT_DOWNLOADS + 2,
+            max_workers=2 * concurrency_ceiling(self.config) + 2,
             thread_name_prefix="dl",
         )
         self.done.load()
@@ -1427,6 +1465,11 @@ class DownloadQueue:
         self._scheduled_probe_failures: dict[str, int] = {}
         self._live_monitor_task: Optional[asyncio.Task] = None
         self._live_monitor_wakeup = asyncio.Event()
+
+    async def set_max_concurrent_downloads(self, limit: int) -> None:
+        if limit != self.semaphore.limit:
+            log.info(f'Concurrent download limit set to {limit}')
+        await self.semaphore.set_limit(limit)
 
     def cancel_add(self):
         self._add_generation += 1

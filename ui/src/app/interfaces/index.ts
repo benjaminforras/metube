@@ -5,3 +5,4 @@ export * from './download';
 export * from './checkable';
 export * from './formats';
 export * from './subscription';
+export * from './defaults';

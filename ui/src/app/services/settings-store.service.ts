@@ -47,6 +47,17 @@ export class SettingsStore {
     this.cookies.set(key, value, { expires: SettingsStore.COOKIE_EXPIRY_DAYS });
   }
 
+  remove(key: string): void {
+    try {
+      this.storage?.removeItem(key);
+    } catch {
+      // Nothing stored to remove.
+    }
+    if (this.cookies.check(key)) {
+      this.cookies.delete(key);
+    }
+  }
+
   private read(key: string): string | null {
     if (!this.storage) {
       return this.cookies.check(key) ? this.cookies.get(key) : null;

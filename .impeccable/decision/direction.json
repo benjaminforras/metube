@@ -1,0 +1,130 @@
+{
+  "title": "Choose the visual world for MeTube",
+  "question": "A fresh hand, with every earlier direction set aside. The roll assigned the Accession Register. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Accession Register",
+      "kicker": "THE ROLL",
+      "lineage": "library accession ledgers, catalogue cards and date-due stamps",
+      "thesis": "Every download is entered in the register with its accession number: the queue is the processing tray, the history is the ledger you search, fetch from and withdraw.",
+      "palette": ["#f3f4f0", "#1f4a38", "#5a3e8c", "#c7352b", "#2b2d2f"],
+      "materials": ["ruled catalogue-card stock with its red header rule", "buckram bookcloth", "violet rubber date stamps", "brass drawer label holders"],
+      "viewport": "A buckram-green masthead; the URL bar as the accession slip with Download stamped in ink; Downloading as the processing tray, Completed as a ruled register with accession numbers and violet date stamps, each section headed by a brass label holder.",
+      "risk": "Library furniture turns quaint if stamps and brass outweigh the rows; it has to read as a fast ledger first and an archive second.",
+      "raised": [
+        { "from": "challenger-sneaker-boxes", "raise": "Every row reads like one end label: the title, then type, format, size and date in fixed monospaced slots, identical down the whole register." },
+        { "from": "challenger-tensegrity", "raise": "Five states stay unmistakable in one stamp vocabulary: received, in process, waiting, catalogued, withdrawn with its reason." },
+        { "from": "challenger-phosphor", "raise": "State prints itself as a dated stamp inside the row, never a badge floating beside it." },
+        { "from": "challenger-yeye-sleeve", "raise": "The buckram ground carries the chrome at full strength: one flat bookcloth field, never a tint wash." }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Master Control",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "TV master control rooms, as-run logs and tally lights",
+      "thesis": "MeTube as master control: the queue is the playout schedule, each item's state a tally lamp, the history the as-run log with its timecodes.",
+      "palette": ["#eef0f2", "#16181b", "#e5322d", "#27b562", "#f2a51f"],
+      "materials": ["tally lamps", "timecode readouts", "as-run log sheets", "router button banks"],
+      "viewport": "A control-room strip with a red ON AIR tally beside each active download and timecode-style speed and ETA; the URL bar as the next-event entry; Completed printed as the as-run log.",
+      "risk": "The closest to where most runs in this category land: a dark control room with red and amber readouts; the light theme has to be the log sheet itself, not an afterthought."
+    },
+    {
+      "id": "challenger-crew-terminal",
+      "label": "Crew Terminal",
+      "verdict": "competitive",
+      "lineage": "used-future starship crew terminals",
+      "thesis": "The ship's paperwork made screen: every download a typed line on curved glass, warnings in amber under striped hazard plates, zones stencilled with equipment codes.",
+      "palette": ["#0c0f0c", "#5cff7a", "#ffb000", "#e9e6dc", "#1a1a1a"],
+      "materials": ["curved CRT glass", "green and amber phosphor caps", "grimy off-white panel chrome", "stencilled codes and hazard plates"],
+      "viewport": "Off-white panel chrome framing a CRT well: the URL bar as the query line with a blinking block cursor, active downloads typed out as readouts, the history as a paged log.",
+      "case": "Wins on audience: self-hosters live in terminals and love this film look. Loses on clarity: typed caps and one-line-at-a-time paging fight a 2,000-row history.",
+      "risk": "Near-black phosphor is a saturated look for this category, and the light theme has only the panel chrome to stand on.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-industrial-starship-terminal-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/pop-culture-shelf-industrial-starship-terminal.webp"
+    },
+    {
+      "id": "challenger-sneaker-boxes",
+      "label": "Sneaker Box Wall",
+      "verdict": "declined",
+      "lineage": "sneaker archive walls of stacked boxes",
+      "thesis": "A wall of boxes read by their end labels.",
+      "palette": ["#c8612a", "#111111", "#f4f1ea"],
+      "materials": ["box board", "one-line silhouette art", "tissue paper"],
+      "viewport": "The history as a stacked wall of end labels.",
+      "case": "Loses both axes: self-hosters have no tie to sneaker archives, and hinged lids slow a scan of thousands.",
+      "kept": "One label grid ruling every row, the same slots in the same place.",
+      "risk": "A shop display, not a tool.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-sneaker-box-stacks-hero.webp"
+    },
+    {
+      "id": "challenger-tensegrity",
+      "label": "Tensegrity Column",
+      "verdict": "declined",
+      "lineage": "tensegrity sculpture",
+      "thesis": "Downloads as members of a structure under tension.",
+      "palette": ["#1c1c1c", "#d9d6cf", "#c8302b", "#8b8b8b"],
+      "materials": ["carbon rods", "red cord", "pale concrete"],
+      "viewport": "A force diagram of the queue.",
+      "case": "Loses both axes: no link to the audience, and a strut network is no way to read a list.",
+      "kept": "Slack, balanced, stressed and failed states that can never be confused.",
+      "risk": "Geometry for its own sake.",
+      "hero": "https://impeccable.style/worlds/cards/kinetic-sculpture-automata-tensegrity-breathing-column-hero.webp"
+    },
+    {
+      "id": "challenger-phosphor",
+      "label": "Midnight Phosphor Terminal",
+      "verdict": "declined",
+      "lineage": "green-phosphor machine-room terminals",
+      "thesis": "One continuous scrolling transcript in P1 green.",
+      "palette": ["#050805", "#33ff66", "#1a7a33"],
+      "materials": ["curved glass", "scanline bloom", "afterimage trails"],
+      "viewport": "The page as one 80-column transcript.",
+      "case": "Loses both axes against the Crew Terminal's fuller grammar: a single 80-column field cannot carry long titles, and it has no light theme.",
+      "kept": "System state printed as text in the flow, never as chrome.",
+      "risk": "The near-black neon look this category's generated UIs default to.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-phosphor-terminal-midnight-hero.webp"
+    },
+    {
+      "id": "challenger-yeye-sleeve",
+      "label": "Yé-yé Pop Sleeve",
+      "verdict": "declined",
+      "lineage": "1960s French pop record sleeves",
+      "thesis": "One flat saturated ground, a cropped portrait, four titles in a corner.",
+      "palette": ["#f26a1b", "#1fb5ad", "#ffffff"],
+      "materials": ["flat ink ground", "studio portrait"],
+      "viewport": "A single release on a flooded ground.",
+      "case": "Loses both axes: a closed set of four tracks is the opposite of an open history.",
+      "kept": "Total commitment to one flat ground colour.",
+      "risk": "A poster, not a list.",
+      "hero": "https://impeccable.style/worlds/cards/posters-covers-sleeves-yeye-pop-sleeve-hero.webp"
+    },
+    {
+      "id": "challenger-ascii",
+      "label": "ASCII Live Render",
+      "verdict": "declined",
+      "lineage": "typewriter-character scene rendering",
+      "thesis": "Everything drawn in glyph density on one character grid.",
+      "palette": ["#070a07", "#9dff9d", "#ffb347"],
+      "materials": ["monospace grid", "luminance ramp"],
+      "viewport": "The page as a live character grid.",
+      "case": "Loses both axes: spectacle with no purpose in a download manager.",
+      "kept": "One strict grid governs everything, captions included.",
+      "risk": "Pure effect.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-ascii-live-scene-render-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code", "toggle": false },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "The self-hosted app UI played straight, the way Sonarr, Jellyfin or Immich look, at full craft.",
+    "palette": ["#ffffff", "#0f172a", "#64748b", "#2563eb"],
+    "materials": ["neutral surfaces", "rounded controls", "one blue accent"],
+    "viewport": "Neutral surfaces, a blue primary and clean dense tables: the layout you know, refined.",
+    "risk": "Indistinguishable from every other self-hosted app, by design."
+  },
+  "steer": true
+}

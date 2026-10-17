@@ -6,10 +6,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
     selector: 'app-item-checkbox',
     template: `
-  <div class="form-check">
-    <input type="checkbox" class="form-check-input" id="{{master().id()}}-{{id()}}-select" [(ngModel)]="checkable().checked" (click)="clicked($event)" (change)="changed()" [attr.aria-label]="'Select item ' + id()">
-    <label class="form-check-label visually-hidden" for="{{master().id()}}-{{id()}}-select">Select item</label>
-  </div>
+  <input type="checkbox" class="row-checkbox" id="{{master().id()}}-{{id()}}-select" [(ngModel)]="checkable().checked" (click)="clicked($event)" (change)="changed()" [attr.aria-label]="'Select item ' + id()">
 `,
     // Shared Checkable objects are mutated in place; Eager preserves pre-v22 behavior.
     // eslint-disable-next-line @angular-eslint/prefer-on-push-component-change-detection

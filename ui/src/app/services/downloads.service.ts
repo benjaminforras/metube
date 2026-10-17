@@ -64,6 +64,8 @@ export class DownloadsService {
   done = new Map<string, Download>();
   queueChanged = new Subject<void>();
   doneChanged = new Subject<void>();
+  // The settings page re-renders its folder list when the directories arrive.
+  customDirsChanged = new Subject<Record<string, string[]>>();
   ytdlOptionsChanged = new Subject<Record<string, unknown>>();
   configurationChanged = new Subject<Record<string, unknown>>();
   formatsChanged = new Subject<FormatCatalog>();
@@ -154,6 +156,7 @@ export class DownloadsService {
       const data = JSON.parse(strdata);
       console.debug("got custom_dirs:", data);
       this.customDirs = data;
+      this.customDirsChanged.next(data);
     });
     this.socket.fromEvent('ytdl_options_changed')
     .pipe(takeUntilDestroyed())

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { BrnDialogRef } from '@spartan-ng/brain/dialog';
 import { Observable, of } from 'rxjs';
 import { BrowsePayload, BrowseResult, DownloadsService } from '../services/downloads.service';
 import { Download } from '../interfaces';
@@ -15,12 +15,17 @@ const payload: BrowsePayload = {
 describe('PlaylistBrowserComponent', () => {
   let browse: ReturnType<typeof vi.fn>;
   let done: Map<string, Download>;
-  let activeModal: { close: ReturnType<typeof vi.fn>; dismiss: ReturnType<typeof vi.fn> };
+  let picked: ReturnType<typeof vi.fn<(urls: string[]) => void>>;
+  let canceled: ReturnType<typeof vi.fn<() => void>>;
 
   const setup = (result: Observable<BrowseResult>) => {
     browse.mockReturnValue(result);
     const fixture = TestBed.createComponent(PlaylistBrowserComponent);
-    fixture.componentInstance.payload = payload;
+    fixture.componentRef.setInput('payload', payload);
+    picked = vi.fn<(urls: string[]) => void>();
+    canceled = vi.fn<() => void>();
+    fixture.componentInstance.picked.subscribe(picked);
+    fixture.componentInstance.canceled.subscribe(canceled);
     fixture.detectChanges();
     return fixture;
   };
@@ -36,19 +41,19 @@ describe('PlaylistBrowserComponent', () => {
   };
 
   const addButton = (el: HTMLElement) =>
-    Array.from(el.querySelectorAll('.modal-footer button')).find((b) =>
-      b.textContent?.includes('Add selected'),
+    Array.from(el.querySelectorAll('hlm-dialog-footer button')).find((b) =>
+      b.textContent?.includes('Download selected'),
     ) as HTMLButtonElement;
 
   beforeEach(async () => {
     browse = vi.fn();
     done = new Map();
-    activeModal = { close: vi.fn(), dismiss: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [PlaylistBrowserComponent],
       providers: [
         { provide: DownloadsService, useValue: { browse, done } },
-        { provide: NgbActiveModal, useValue: activeModal },
+        // The title and description directives take their ids from the dialog.
+        { provide: BrnDialogRef, useValue: { dialogId: 'test', registerDescription: vi.fn(), unregisterDescription: vi.fn() } },
       ],
     }).compileComponents();
   });
@@ -60,8 +65,8 @@ describe('PlaylistBrowserComponent', () => {
 
   it('renders the title, entry count, entries and durations', () => {
     const el = setup(of(okResult)).nativeElement as HTMLElement;
-    expect(el.querySelector('.modal-title')?.textContent).toContain('My Playlist');
-    expect(el.querySelector('.modal-title')?.textContent).toContain('3 entries');
+    expect(el.querySelector('[hlmDialogTitle]')?.textContent).toContain('My Playlist');
+    expect(el.querySelector('[hlmDialogTitle]')?.textContent).toContain('3 entries');
     const rows = el.querySelectorAll('tbody tr');
     expect(rows.length).toBe(3);
     expect(rows[0].textContent).toContain('First');
@@ -78,7 +83,7 @@ describe('PlaylistBrowserComponent', () => {
     expect(addButton(el).disabled).toBe(true);
   });
 
-  it('starts with nothing checked and Add selected disabled', () => {
+  it('starts with nothing checked and Download selected disabled', () => {
     const el = setup(of(okResult)).nativeElement as HTMLElement;
     const boxes = el.querySelectorAll<HTMLInputElement>('tbody input[type="checkbox"]');
     expect(boxes.length).toBe(3);
@@ -87,15 +92,16 @@ describe('PlaylistBrowserComponent', () => {
     expect(addButton(el).textContent).toContain('(0)');
   });
 
-  it('select-all checks every row and Add closes with de-duplicated urls in order', () => {
+  it('select-all checks every row and Download selected emits de-duplicated urls in order', () => {
     const fixture = setup(of(okResult));
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLInputElement>('thead input[type="checkbox"]')!.click();
+    // Select-all is a Spartan checkbox: a button with the checkbox role.
+    el.querySelector<HTMLButtonElement>('thead button[role="checkbox"]')!.click();
     fixture.detectChanges();
     expect(addButton(el).disabled).toBe(false);
     expect(addButton(el).textContent).toContain('(3)');
     addButton(el).click();
-    expect(activeModal.close).toHaveBeenCalledWith([
+    expect(picked).toHaveBeenCalledWith([
       'https://example.com/a',
       'https://example.com/b',
     ]);
@@ -110,7 +116,7 @@ describe('PlaylistBrowserComponent', () => {
     fixture.detectChanges();
     expect(addButton(el).textContent).toContain('(1)');
     addButton(el).click();
-    expect(activeModal.close).toHaveBeenCalledWith(['https://example.com/b']);
+    expect(picked).toHaveBeenCalledWith(['https://example.com/b']);
   });
 
   it('badges only entries that are finished in the Completed list', () => {
@@ -124,24 +130,24 @@ describe('PlaylistBrowserComponent', () => {
     } as Download);
     const el = setup(of(okResult)).nativeElement as HTMLElement;
     const rows = el.querySelectorAll('tbody tr');
-    expect(rows[0].querySelector('.badge')?.textContent).toContain('Downloaded');
-    expect(rows[1].querySelector('.badge')).toBeNull();
-    expect(rows[2].querySelector('.badge')).not.toBeNull();
+    expect(rows[0].querySelector('[hlmBadge]')?.textContent).toContain('Downloaded');
+    expect(rows[1].querySelector('[hlmBadge]')).toBeNull();
+    expect(rows[2].querySelector('[hlmBadge]')).not.toBeNull();
   });
 
   it('renders the error message', () => {
     const el = setup(of({ status: 'error', msg: 'This URL points to a single video' }))
       .nativeElement as HTMLElement;
-    expect(el.querySelector('.alert-danger')?.textContent).toContain(
+    expect(el.querySelector('[hlmAlert]')?.textContent).toContain(
       'This URL points to a single video',
     );
     expect(el.querySelector('table')).toBeNull();
     expect(addButton(el).disabled).toBe(true);
   });
 
-  it('Cancel dismisses the modal', () => {
+  it('Cancel asks the opener to close', () => {
     const el = setup(of(okResult)).nativeElement as HTMLElement;
-    (el.querySelector('.modal-footer .btn-outline-secondary') as HTMLButtonElement).click();
-    expect(activeModal.dismiss).toHaveBeenCalled();
+    (el.querySelector('hlm-dialog-footer button') as HTMLButtonElement).click();
+    expect(canceled).toHaveBeenCalled();
   });
 });
