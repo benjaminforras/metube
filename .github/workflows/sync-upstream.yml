@@ -1,0 +1,94 @@
+name: sync-upstream
+
+# Fork-only: replays this fork's own commits on top of alexta69/metube's master
+# every night. A clean rebase that passes the checks replaces master; a conflict
+# or a failing check leaves master alone and fails the run, which GitHub emails
+# about. Conflicts are then resolved by hand: rebase locally and force-push.
+
+on:
+  schedule:
+    # After upstream's nightly yt-dlp bump at 00:00 UTC.
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+concurrency: sync-upstream
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: github.repository != 'alexta69/metube'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: master
+          fetch-depth: 0
+          # GITHUB_TOKEN may not push commits that touch .github/workflows,
+          # which upstream's commits sometimes do.
+          token: ${{ secrets.SYNC_PAT }}
+
+      - name: Rebase onto upstream
+        id: rebase
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add upstream https://github.com/alexta69/metube.git
+          git fetch upstream master
+          echo "before=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if git merge-base --is-ancestor upstream/master HEAD; then
+            echo 'Already up to date with upstream.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          {
+            echo "### New upstream commits"
+            git log --oneline HEAD..upstream/master
+          } >> "$GITHUB_STEP_SUMMARY"
+          if ! git rebase upstream/master; then
+            {
+              echo "### Rebase conflict, master left unchanged"
+              echo "Stopped at: $(git log -1 --format='%h %s' REBASE_HEAD)"
+              echo "Conflicting files:"
+              git diff --name-only --diff-filter=U | sed 's/^/- /'
+            } >> "$GITHUB_STEP_SUMMARY"
+            git rebase --abort
+            exit 1
+          fi
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        if: steps.rebase.outputs.changed == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+      - name: Enable pnpm
+        if: steps.rebase.outputs.changed == 'true'
+        run: npm install -g corepack && corepack enable
+      - name: Frontend checks
+        if: steps.rebase.outputs.changed == 'true'
+        working-directory: ui
+        env:
+          CI: true
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run lint
+          pnpm run build
+          pnpm exec ng test --watch=false
+      - name: Install uv
+        if: steps.rebase.outputs.changed == 'true'
+        uses: astral-sh/setup-uv@v7
+      - name: Backend checks
+        if: steps.rebase.outputs.changed == 'true'
+        run: |
+          uv sync --frozen --group dev
+          uv run python -m compileall -q app
+          uv run pytest app/tests/
+
+      - name: Push rebased master
+        if: steps.rebase.outputs.changed == 'true'
+        run: |
+          git push --force-with-lease=master:${{ steps.rebase.outputs.before }} origin HEAD:master
+          echo "Master rebased onto upstream and pushed." >> "$GITHUB_STEP_SUMMARY"
